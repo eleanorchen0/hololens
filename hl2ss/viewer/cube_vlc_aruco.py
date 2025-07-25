@@ -11,7 +11,7 @@ import hl2ss_3dcv
 import hl2ss_rus
 
 # settings -------------------------------------------------------------------
-host = "10.29.211.183"
+host = "10.29.211.183" # pv still doesn't work
 
 # hl2ss.StreamPort.RM_VLC_LEFTFRONT
 # hl2ss.StreamPort.RM_VLC_LEFTLEFT
