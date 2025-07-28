@@ -13,5 +13,5 @@ marker_data = {
 json_data = json.dumps(marker_data)
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
-s.send(json_data)
+s.sendall(json_data)
 s.close()

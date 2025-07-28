@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using MixedReality.Toolkit.UX;
-using TMPro;
 
 host = "127.0.0.1";
 port = 54321;
