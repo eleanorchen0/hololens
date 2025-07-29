@@ -1,11 +1,12 @@
 import socket
 
-host = 
-port = 
+host = "10.29.211.183"
+port = 65432
 
+ids =
 marker_data = {
-    "ids" : ids
-    "position" : {"x" : 0, "y" : 0, "z" : 0}
+    "ids" : ids,
+    "position" : {"x" : 0, "y" : 0, "z" : 0},
     "rotation" : {"x" : 0, "y" : 0, "z" : 0, "w" : 0}
 }
 
@@ -13,7 +14,7 @@ def connect_to_server(host, port):
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect(host, port)
-            print(f"Connected to server at {ip}:{port}")
+            print(f"Connected to server at {host}:{port}")
 
             message = marker_data
             s.sendall(message.encode('utf-8'))
@@ -27,5 +28,10 @@ def connect_to_server(host, port):
 
     except ConnectionRefusedError:
         print("Could not connect to server")
-    except Exception as e 
+    except Exception as e:
+        print(e)
+
+if __name__ == "__main__":
+    connect_to_server(host, port)
+
 
