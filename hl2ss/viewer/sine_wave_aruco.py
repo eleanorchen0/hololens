@@ -6,6 +6,7 @@ import numpy as np
 import hl2ss_3dcv
 import hl2ss_rus
 import socket
+import json
 
 # settings -------------------------------------------------------------------
 host = "127.0.0.1" # pv still doesn't work
@@ -18,8 +19,6 @@ port = hl2ss.StreamPort.RM_VLC_LEFTFRONT
 
 unity_ip = "10.29.211.183"
 unity_port = 65432
-unity_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-unity_socket.connect((unity_ip, unity_port))
 
 calibration_path = '/home/eleanor/Downloads/studying-main/hl2ss/calibration'
 
@@ -46,53 +45,27 @@ def average_time(time_position, current_time, time_interval):
     return average_position
 
 # socket ---------------------------------------------------------------------
-def connect_to_server(host, port):
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect(host, port)
-            print(f"Connected to server at {host}:{port}")
-
-            message = marker_data
-            s.sendall(message.encode('utf-8'))
-            print(f"Sent {message}")
-
-            while True:
-                data = s.recv(1024)
-                if not data:
-                    break
-                print("Received from server:", data.decode('utf-8'))
-
-    except ConnectionRefusedError:
-        print("Could not connect to server")
-    except Exception as e:
-        print(e)
+unity_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+try:
+    unity_socket.connect((unity_ip, unity_port))
+    print(f"Connected to server at {host}:{port}")
+    
+except Exception as e:
+    print(f"Failed to connect : {e}")
+    unity_socket = None
 
 # aruco ----------------------------------------------------------------------
 marker_length  = 0.07
 
 aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
-
-
 aruco_parameters = cv2.aruco.DetectorParameters()
 aruco_half = marker_length/2
-aruco_reference = np.array([[-aruco_half, aruco_half, 0], [aruco_half, aruco_half, 0], [aruco_half, -aruco_half, 0], [-aruco_half, -aruco_half, 0], [0, 0, marker_length / 2]], dtype=np.float32)
-
-# unity ----------------------------------------------------------------------
-ipc_unity = hl2ss_lnm.ipc_umq(unity_ip, hl2ss.IPCPort.UNITY_MESSAGE_QUEUE)
-ipc_unity.open()
-
-# wave -----------------------------------------------------------------------
-command_buffer = hl2ss_rus.command_buffer()
-
-command_buffer.begin_display_list()
-command_buffer.remove_all()
-command_buffer.set_target_mode(hl2ss_rus.TargetMode.UseLast)
-command_buffer.set_target_mode(hl2ss_rus.TargetMode.UseID)
-ipc_unity.push(command_buffer)
-results = ipc_unity.pull(command_buffer)
-key = results[2]
-
-print(f'Created wave with id {key}')
+aruco_reference = np.array([
+    [-aruco_half, aruco_half, 0], 
+    [aruco_half, aruco_half, 0], 
+    [aruco_half, -aruco_half, 0], 
+    [-aruco_half, -aruco_half, 0], 
+    [0, 0, marker_length / 2]], dtype=np.float32)
 
 #-----------------------------------------------------------------------------
 client = hl2ss_lnm.rx_rm_vlc(unity_ip, port, mode=mode, profile=profile, bitrate=bitrate)
@@ -102,8 +75,7 @@ while True:
 
     data = client.get_next_packet()
     time = data.timestamp
-    print(time)
-
+    
     frames = data.payload.image
     color_frames = cv2.cvtColor(frames, cv2.COLOR_GRAY2BGR)
 
@@ -155,18 +127,30 @@ while True:
         average_position = average_time(position, time, 5000000)
         average_rotation = average_time(rotation, time, 5000000)
 
-    # update wave
-    command_buffer = hl2ss_rus.command_buffer()
+        if update_wave and unity_socket and average_position and average_rotation is not None:
 
-    if update_wave:
-        
-        marker_data = {
-            "id" : ids,
-            "position" : {"x" : average_position[0], "y" : average_position[1], "z" : average_position[2]},
-            "rotation" : {"x" : average_rotation[0], "y" : average_rotation[1], "z" : average_rotation[2], "w" : average_rotation[3]},
-        }
+            marker_data = {
+                "ids" : ids,
+                "position" : {
+                    "x" : float(average_position[0]), 
+                    "y" : float(average_position[1]), 
+                    "z" : float(average_position[2])
+                },
+                "rotation" : {
+                    "x" : float(average_rotation[0]), 
+                    "y" : float(average_rotation[1]), 
+                    "z" : float(average_rotation[2]), 
+                    "w" : float(average_rotation[3])
+                },
+            }
+            
+            try:
+                message = json.dumps(marker_data)
+                unity_socket.sendall(message.encode('utf-8'))
+                print(f"Sent : {message}")
+            except Exception as e:
+                print(f"Failed to send : {e}")
 
-        connect_to_server(unity_ip, unity_port)
 
     cv2.imshow("wave aruco", cv2.rotate(color_frames, cv2.ROTATE_90_CLOCKWISE))
 
@@ -175,12 +159,9 @@ while True:
 #-----------------------------------------------------------------------------
 client.close()
 
-command_buffer = hl2ss_rus.command_buffer()
-command_buffer.remove(key)
+if unity_socket:
+    unity_socket.close()
 
-ipc_unity.push(command_buffer)
-results = ipc_unity.pull(command_buffer)
-
-ipc_unity.close()
+cv2.destroyAllWindows()
 
 #-----------------------------------------------------------------------------

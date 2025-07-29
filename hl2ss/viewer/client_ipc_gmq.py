@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# This script demonstrates how to receive a command with a string parameter 
+# This script demnstrates how to receive a command with a string parameter 
 # from a Unity app using the plugin. The command handler for this client is in
 # the MQXSkeleton.cs script.
 #------------------------------------------------------------------------------
