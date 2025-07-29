@@ -91,7 +91,6 @@ while True:
 
     data = client.get_next_packet()
     time = data.timestamp
-    print(time)
 
     frames = data.payload.image
     color_frames = cv2.cvtColor(frames, cv2.COLOR_GRAY2BGR)
@@ -143,6 +142,8 @@ while True:
     
         average_position = average_time(position, time, 5000000)
         average_rotation = average_time(rotation, time, 5000000)
+
+        print(average_position, average_rotation)
 
     # update cube
     command_buffer = hl2ss_rus.command_buffer()
