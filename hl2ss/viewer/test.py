@@ -1,7 +1,14 @@
-from pynput import keyboard
+import socket
+import json
 
-def on_press(key):
-    print(f"Key {key} pressed")
+unity_ip = "10.29.244.211"
+unity_port = 65432
 
-with keyboard.Listener(on_press=on_press) as listener:
-    listener.join()
+unity_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+try:
+    unity_socket.connect((unity_ip, unity_port))
+    print(f"Connected to server at {unity_ip}:{unity_port}")
+    
+except Exception as e:
+    print(f"Failed to connect : {e}")
+    unity_socket = None

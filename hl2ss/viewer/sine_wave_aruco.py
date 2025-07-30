@@ -9,15 +9,13 @@ import socket
 import json
 
 # settings -------------------------------------------------------------------
-host = "127.0.0.1" # pv still doesn't work
-
 # hl2ss.StreamPort.RM_VLC_LEFTFRONT
 # hl2ss.StreamPort.RM_VLC_LEFTLEFT
 # hl2ss.StreamPort.RM_VLC_RIGHTFRONT
 # hl2ss.StreamPort.RM_VLC_RIGHTRIGHT
 port = hl2ss.StreamPort.RM_VLC_LEFTFRONT
 
-unity_ip = "10.29.211.183"
+unity_ip = "172.31.0.1"
 unity_port = 65432
 
 calibration_path = '/home/eleanor/Downloads/studying-main/hl2ss/calibration'
@@ -48,7 +46,7 @@ def average_time(time_position, current_time, time_interval):
 unity_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
     unity_socket.connect((unity_ip, unity_port))
-    print(f"Connected to server at {host}:{port}")
+    print(f"Connected to server at {unity_ip}:{unity_port}")
     
 except Exception as e:
     print(f"Failed to connect : {e}")
