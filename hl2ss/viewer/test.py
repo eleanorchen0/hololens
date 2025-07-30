@@ -9,7 +9,7 @@ import hl2ss_3dcv
 hl2_host = "10.29.211.183"
 hl2_port = hl2ss.StreamPort.RM_VLC_RIGHTFRONT
 
-calibration_path = '/Users/eleanor/Documents/Github/studying-main/hl2ss/calibration'
+calibration_path = "calibration"
 
 mode = hl2ss.StreamMode.MODE_1
 profile = hl2ss.VideoProfile.H265_MAIN
