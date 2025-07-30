@@ -15,7 +15,7 @@ import json
 # hl2ss.StreamPort.RM_VLC_RIGHTRIGHT
 port = hl2ss.StreamPort.RM_VLC_LEFTFRONT
 
-unity_ip = "172.31.0.1"
+unity_ip = "10.29.224.211"
 unity_port = 65432
 
 calibration_path = '/home/eleanor/Downloads/studying-main/hl2ss/calibration'
