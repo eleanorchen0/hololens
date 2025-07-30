@@ -1,7 +1,7 @@
 import socket
 
 host, port = "127.0.0.1", 1984
-data = "-1,1,-8"
+data = "-1,1,-8,0,0,20,0"
 
 socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
