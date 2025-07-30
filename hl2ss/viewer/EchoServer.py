@@ -1,21 +1,16 @@
 import socket
 
-# Server setup
-HOST = '127.0.0.1'  # If Unity is running on same machine
+HOST = '127.0.0.1'  # Unity's IP
 PORT = 65432
 
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind((HOST, PORT))
-server_socket.listen()
+unity_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+unity_socket.connect((HOST, PORT))
+print("[Python] Connected to Unity")
 
-print(f"[Python] Listening on {HOST}:{PORT}")
+message = "Hello from Python!\n"
+unity_socket.sendall(message.encode('utf-8'))
 
-conn, addr = server_socket.accept()
-print(f"[Python] Connected by {addr}")
+response = unity_socket.recv(1024)
+print("[Python] Received:", response.decode('utf-8'))
 
-while True:
-    data = conn.recv(1024)
-    if not data:
-        break
-    print(f"[Python] Received: {data.decode('utf-8')}")
-    conn.sendall(data)  # Echo back
+unity_socket.close()
