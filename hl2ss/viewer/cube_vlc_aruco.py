@@ -19,7 +19,7 @@ host = "10.29.211.183" # pv still doesn't work
 # hl2ss.StreamPort.RM_VLC_RIGHTRIGHT
 port = hl2ss.StreamPort.RM_VLC_LEFTFRONT
 
-calibration_path = '/home/eleanor/Downloads/studying-main/hl2ss/calibration'
+calibration_path = '/Users/elean/Documents/GitHub/studying-main/hl2ss/viewer/calibration'
 
 # 0: video
 # 1: video + rig pose
@@ -35,7 +35,7 @@ rotation = []
 
 def average_time(time_position, current_time, time_interval):
     time_position[:] = [(time, position) for (time, position) in time_position if (current_time - time <= time_interval)]
-    
+
     if not time_position:
         return None
 
@@ -68,13 +68,13 @@ command_buffer = hl2ss_rus.command_buffer()
 
 cube_scale = [cube_length, cube_length, cube_length]
 
-command_buffer.begin_display_list() 
-command_buffer.remove_all() 
-command_buffer.create_primitive(hl2ss_rus.PrimitiveType.Cube) 
-command_buffer.set_target_mode(hl2ss_rus.TargetMode.UseLast) 
+command_buffer.begin_display_list()
+command_buffer.remove_all()
+command_buffer.create_primitive(hl2ss_rus.PrimitiveType.Cube)
+command_buffer.set_target_mode(hl2ss_rus.TargetMode.UseLast)
 command_buffer.set_color(key, rgba)
-command_buffer.set_target_mode(hl2ss_rus.TargetMode.UseID) 
-ipc_unity.push(command_buffer) 
+command_buffer.set_target_mode(hl2ss_rus.TargetMode.UseID)
+ipc_unity.push(command_buffer)
 results = ipc_unity.pull(command_buffer)
 key = results[2]
 
@@ -130,7 +130,7 @@ while True:
 
         updated_position[2] = - updated_position[2]
         # updated_position[1] = updated_position[1] - 0.025 # (to be centered)
-        updated_rotation[2:3] = - updated_rotation[2:3]        
+        updated_rotation[2:3] = - updated_rotation[2:3]
 
         update_cube = True
 
@@ -138,8 +138,8 @@ while True:
 
         # averaging position for less noise ----------------------------------
         position.append([time, updated_position.copy()])
-        rotation.append([time, updated_rotation.copy()])    
-    
+        rotation.append([time, updated_rotation.copy()])
+
         average_position = average_time(position, time, 5000000)
         average_rotation = average_time(rotation, time, 5000000)
 
