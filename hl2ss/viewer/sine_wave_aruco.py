@@ -9,7 +9,7 @@ import socket
 import json
 
 # settings -------------------------------------------------------------------
-# hl2ss.StreamPort.RM_VLC_LEFTFRONT
+# hl2ss.StreamPort.RM_VLC_LEFTFRONTs
 # hl2ss.StreamPort.RM_VLC_LEFTLEFT
 # hl2ss.StreamPort.RM_VLC_RIGHTFRONT
 # hl2ss.StreamPort.RM_VLC_RIGHTRIGHT
@@ -45,8 +45,8 @@ def average_time(time_position, current_time, time_interval):
 # socket ---------------------------------------------------------------------
 unity_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
-    unity_socket.connect((unity_ip, unity_port))
-    print(f"Connected to server at {unity_ip}:{unity_port}")
+    unity_socket.connect(("10.29.224.211", 65432))
+    print(f"Connected to server")
     
 except Exception as e:
     print(f"Failed to connect : {e}")

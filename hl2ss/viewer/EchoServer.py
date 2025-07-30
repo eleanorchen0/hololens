@@ -1,7 +1,7 @@
 import socket
 
-HOST = '127.0.0.1'  # Unity's IP
-PORT = 65432
+HOST = '10.29.224.211'  # Unity's IP
+PORT = 12345
 
 unity_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 unity_socket.connect((HOST, PORT))

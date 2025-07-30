@@ -3,7 +3,7 @@ import sys
 import selectors
 import types
 
-host = "127.0.0.1"
+host = "10.29.224.211"
 port = 65432
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
