@@ -18,7 +18,7 @@ port = hl2ss.StreamPort.RM_VLC_LEFTFRONT
 unity_ip = "10.29.224.211"
 unity_port = 65432
 
-calibration_path = '/home/eleanor/Downloads/studying-main/hl2ss/calibration'
+calibration_path = '/Users/elean/Documents/GitHub/studying-main/hl2ss/viewer/calibration'
 
 # 0: video
 # 1: video + rig pose
