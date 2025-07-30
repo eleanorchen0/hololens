@@ -1,7 +1,7 @@
 import socket
 
 # Server setup
-HOST = '127.0.0.1'  # If Unity is running on same machine
+HOST = '10.29.224.211'  # If Unity is running on same machine
 PORT = 65432
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
