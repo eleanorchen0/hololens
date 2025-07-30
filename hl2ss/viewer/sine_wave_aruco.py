@@ -6,17 +6,17 @@ import numpy as np
 import hl2ss_3dcv
 import hl2ss_rus
 import socket
-import json
 
 # settings -------------------------------------------------------------------
 # hl2ss.StreamPort.RM_VLC_LEFTFRONTs
 # hl2ss.StreamPort.RM_VLC_LEFTLEFT
 # hl2ss.StreamPort.RM_VLC_RIGHTFRONT
 # hl2ss.StreamPort.RM_VLC_RIGHTRIGHT
-port = hl2ss.StreamPort.RM_VLC_LEFTFRONT
+hl2_port = hl2ss.StreamPort.RM_VLC_LEFTFRONT
 
-unity_ip = "10.29.224.211"
-unity_port = 65432
+hl2_host = "10.29.211.183"
+
+host, port = "127.0.0.1", 1984
 
 calibration_path = '/Users/elean/Documents/GitHub/studying-main/hl2ss/viewer/calibration'
 
@@ -43,14 +43,13 @@ def average_time(time_position, current_time, time_interval):
     return average_position
 
 # socket ---------------------------------------------------------------------
-unity_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
-    unity_socket.connect(("10.29.224.211", 65432))
-    print(f"Connected to server")
-    
+    socket.connect((host, port))
+    print(f"Connected at {host}:{port}")
+
 except Exception as e:
-    print(f"Failed to connect : {e}")
-    unity_socket = None
+    print(f"Failed to connect at {host}:{port}: {e}")
 
 # aruco ----------------------------------------------------------------------
 marker_length  = 0.07
@@ -66,7 +65,7 @@ aruco_reference = np.array([
     [0, 0, marker_length / 2]], dtype=np.float32)
 
 #-----------------------------------------------------------------------------
-client = hl2ss_lnm.rx_rm_vlc(unity_ip, port, mode=mode, profile=profile, bitrate=bitrate)
+client = hl2ss_lnm.rx_rm_vlc(hl2_host, hl2_port, mode=mode, profile=profile, bitrate=bitrate)
 client.open()
 
 while True:
@@ -77,7 +76,7 @@ while True:
     frames = data.payload.image
     color_frames = cv2.cvtColor(frames, cv2.COLOR_GRAY2BGR)
 
-    calibration_vlc = hl2ss_3dcv.get_calibration_rm(calibration_path, unity_ip, port)
+    calibration_vlc = hl2ss_3dcv.get_calibration_rm(calibration_path, hl2_host, hl2_port)
 
     intrinsics = calibration_vlc.intrinsics
     extrinsics = calibration_vlc.extrinsics
@@ -125,30 +124,24 @@ while True:
         average_position = average_time(position, time, 5000000)
         average_rotation = average_time(rotation, time, 5000000)
 
-        if update_wave and unity_socket and average_position and average_rotation is not None:
+        if update_wave and socket and average_position and average_rotation is not None:
 
-            marker_data = {
-                "ids" : ids,
-                "position" : {
-                    "x" : float(average_position[0]), 
-                    "y" : float(average_position[1]), 
-                    "z" : float(average_position[2])
-                },
-                "rotation" : {
-                    "x" : float(average_rotation[0]), 
-                    "y" : float(average_rotation[1]), 
-                    "z" : float(average_rotation[2]), 
-                    "w" : float(average_rotation[3])
-                },
-            }
+            marker_data = {float(average_position[0]), 
+                           float(average_position[1]), 
+                           float(average_position[2]), 
+                           float(average_rotation[0]), 
+                           float(average_rotation[1]), 
+                           float(average_rotation[2]), 
+                           float(average_rotation[3])}
             
             try:
-                message = json.dumps(marker_data)
-                unity_socket.sendall(message.encode('utf-8'))
-                print(f"Sent : {message}")
+                socket.sendall(marker_data.encode('utf-8'))
+                print("Sent")
+                response = socket.recv(1024).decode("utf-8")
+                print(response)
+                
             except Exception as e:
                 print(f"Failed to send : {e}")
-
 
     cv2.imshow("wave aruco", cv2.rotate(color_frames, cv2.ROTATE_90_CLOCKWISE))
 
@@ -156,9 +149,7 @@ while True:
 
 #-----------------------------------------------------------------------------
 client.close()
-
-if unity_socket:
-    unity_socket.close()
+socket.close()
 
 cv2.destroyAllWindows()
 
