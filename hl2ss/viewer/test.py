@@ -14,7 +14,7 @@ host = "10.29.211.183"
 calibration_path = 'calibration'
 
 port = hl2ss.StreamPort.RM_VLC_RIGHTFRONT
-mode = hl2ss.StreamMode.MODE_1
+mode = hl2ss.StreamMode.MODE_2
 profile = hl2ss.VideoProfile.H265_MAIN
 bitrate = None
 unity_host, unity_port = "127.0.0.1", 1984
