@@ -52,9 +52,6 @@ aruco_half = marker_length/2
 aruco_reference = np.array([[-aruco_half, aruco_half, 0], [aruco_half, aruco_half, 0], [aruco_half, -aruco_half, 0], [-aruco_half, -aruco_half, 0], [0, 0, marker_length / 2]], dtype=np.float32)
 
 # wave ------------------------------------------------------------------------
-scale = [marker_length, marker_length, marker_length]
-key = 0
-
 client = hl2ss_lnm.rx_rm_vlc(host, port, mode=mode, profile=profile, bitrate=bitrate)
 client.open()
 
