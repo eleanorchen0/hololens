@@ -7,6 +7,8 @@ import hl2ss_utilities
 import hl2ss_3dcv
 import numpy as np
 import socket
+import hl2ss_rus
+
 # settings --------------------------------------------------------------------
 host = "10.29.211.183"
 port = hl2ss.StreamPort.RM_VLC_RIGHTFRONT
@@ -17,15 +19,23 @@ mode = hl2ss.StreamMode.MODE_1
 profile = hl2ss.VideoProfile.H265_MAIN
 bitrate = None
 
+text = "connected"
+ipc = hl2ss_lnm.ipc_umq(host, hl2ss.IPCPort.UNITY_MESSAGE_QUEUE)
+ipc.open()
+
+display_list = hl2ss_rus.command_buffer()
+
 #------------------------------------------------------------------------------
-unity_host, unity_port = "10.29.211.183", 1984
-# 
-# socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# try:
-#     socket.connect((unity_host, unity_port))
-#     print(f"Connected at {host}:{port}")
-# except Exception as e:
-#     print(f"Failed to connect to {host}")
+unity_host, unity_port = "127.0.0.1", 1984
+
+socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+try:
+    socket.connect((unity_host, unity_port))
+    print(f"Connected at {host}:{port}")
+    display_list.say(text)
+    ipc.push(display_list) 
+except Exception as e:
+    print(f"Failed to connect to {host}")
 
 #------------------------------------------------------------------------------
 position = []
@@ -40,6 +50,7 @@ def average_time(time_position, current_time, time_interval):
     positions = np.array([position for (_, position) in time_position])
     average_position = positions.mean(axis=0)
     return average_position
+
 
 # aruco -----------------------------------------------------------------------
 marker_length  = 0.07
@@ -115,14 +126,14 @@ while True:
         d = f"{float(average_position[0])},{float(average_position[1])},{float(average_position[2])},{float(average_rotation[0])},{float(average_rotation[1])},{float(average_rotation[2])},{float(average_rotation[3])}"
 
         print(d)
-        # 
-        # try:
-        #     socket.sendall(d.encode("utf-8"))
-        #     print(f"Sent {d}")
-        #     response = socket.recv(1024).decode("utf-8")
-        #     
-        # except Exception as e:
-        #     print(e)
+
+        try:
+            socket.sendall(d.encode("utf-8"))
+            print(f"Sent {d}")
+            response = socket.recv(1024).decode("utf-8")
+
+        except Exception as e:
+            print(e)
 
 
     cv2.imshow("wave aruco", cv2.rotate(color_frames, cv2.ROTATE_90_COUNTERCLOCKWISE))
@@ -133,5 +144,5 @@ while True:
 socket.close()
 client.close()
 cv2.destroyAllWindows()
-
+ipc.close()
 #------------------------------------------------------------------------------
