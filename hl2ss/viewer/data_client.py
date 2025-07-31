@@ -4,14 +4,12 @@ import hl2ss_imshow
 import hl2ss
 import hl2ss_lnm
 import hl2ss_utilities
-import numpy as np
 import hl2ss_3dcv
-import hl2ss_rus
-import socket
+import numpy as np
 
 # settings --------------------------------------------------------------------
 host = "10.29.211.183"
-port = hl2ss.StreamPort.RM_VLC_LEFTFRONT
+port = hl2ss.StreamPort.RM_VLC_RIGHTFRONT
 
 calibration_path = "calibration"
 
@@ -130,7 +128,7 @@ while True:
         #     response = socket.recv(1024).decode("utf-8")
 
 
-    cv2.imshow("wave aruco", cv2.rotate(color_frames, cv2.ROTATE_90_CLOCKWISE))
+    cv2.imshow("wave aruco", cv2.rotate(color_frames, cv2.ROTATE_90_COUNTERCLOCKWISE))
 
     cv2.waitKey(1)
 
