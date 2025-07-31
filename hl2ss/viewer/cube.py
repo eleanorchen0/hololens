@@ -13,7 +13,7 @@ import socket
 host = "10.29.211.183"
 port = hl2ss.StreamPort.RM_VLC_LEFTFRONT
 
-calibration_path = '/home/eleanor/Downloads/studying-main/hl2ss/calibration'
+calibration_path = "calibration"
 
 mode = hl2ss.StreamMode.MODE_1
 profile = hl2ss.VideoProfile.H265_MAIN
