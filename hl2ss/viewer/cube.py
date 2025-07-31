@@ -7,27 +7,29 @@ import hl2ss_utilities
 import numpy as np
 import hl2ss_3dcv
 import hl2ss_rus
+import socket
 
 # settings --------------------------------------------------------------------
-
 host = "10.29.211.183"
-
-# hl2ss.StreamPort.RM_VLC_LEFTFRONT
-# hl2ss.StreamPort.RM_VLC_LEFTLEFT
-# hl2ss.StreamPort.RM_VLC_RIGHTFRONT
-# hl2ss.StreamPort.RM_VLC_RIGHTRIGHT
 port = hl2ss.StreamPort.RM_VLC_LEFTFRONT
 
 calibration_path = '/home/eleanor/Downloads/studying-main/hl2ss/calibration'
 
-# 0: video
-# 1: video + rig pose
-# 2: query calibration (single transfer)
 mode = hl2ss.StreamMode.MODE_1
-
 profile = hl2ss.VideoProfile.H265_MAIN
 bitrate = None
 
+#------------------------------------------------------------------------------
+unity_host, unity_port = "127.0.0.1", 1984
+
+# socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# try:
+#     socket.connect((unity_host, unity_port))
+#     print(f"Connected at {host}:{port}")
+# except Exception as e:
+#     print(f"Failed to connect to {host}")
+
+#------------------------------------------------------------------------------
 position = []
 rotation = []
 
@@ -41,33 +43,22 @@ def average_time(time_position, current_time, time_interval):
     average_position = positions.mean(axis=0)
     return average_position
 
-
 # aruco -----------------------------------------------------------------------
-
 marker_length  = 0.07
-sphere_diameter = marker_length
-
 
 aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 aruco_parameters = cv2.aruco.DetectorParameters()
 aruco_half = marker_length/2
-aruco_reference = np.array([[-aruco_half, aruco_half, 0], [aruco_half, aruco_half, 0], [aruco_half, -aruco_half, 0], [-aruco_half, -aruco_half, 0], [0, 0, sphere_diameter / 2]], dtype=np.float32)
+aruco_reference = np.array([[-aruco_half, aruco_half, 0], [aruco_half, aruco_half, 0], [aruco_half, -aruco_half, 0], [-aruco_half, -aruco_half, 0], [0, 0, marker_length / 2]], dtype=np.float32)
 
-# sphere ----------------------------------------------------------------------
-
-position = [ -0.3,  1.2,  0 ]
-rotation = [ 0, 0, 0, 0]
-
-scale = [sphere_diameter, sphere_diameter, sphere_diameter]
-rgba = [1, 1, 1, 1]
-
+# wave ------------------------------------------------------------------------
+scale = [marker_length, marker_length, marker_length]
 key = 0
 
 client = hl2ss_lnm.rx_rm_vlc(host, port, mode=mode, profile=profile, bitrate=bitrate)
 client.open()
 
-# main loop ---------------------------------------------------------------------
-
+# main loop -------------------------------------------------------------------
 while True:
 
     data = client.get_next_packet()
@@ -83,7 +74,7 @@ while True:
 
     corners, ids, rejected = cv2.aruco.detectMarkers(color_frames, aruco_dict, parameters=aruco_parameters)
 
-    update_sphere = False
+    update= False
 
     if (ids is not None and hl2ss.is_valid_pose(data.pose)):
 
@@ -99,17 +90,18 @@ while True:
         aruco_to_world = aruco_pose @ hl2ss_3dcv.camera_to_rignode(extrinsics) @ hl2ss_3dcv.reference_to_world(data.pose)
         aruco_reference_world = hl2ss_3dcv.transform(aruco_reference, aruco_to_world)
 
-        # sphere position
+        # position
         updated_position = aruco_reference_world[4, :]
-        cube_rotation_vec, _ = cv2.Rodrigues(aruco_to_world[:3, :3])
-        cube_angle = np.linalg.norm(cube_rotation_vec)
-        cube_axis = cube_rotation_vec / cube_angle
-        updated_rotation = np.vstack((cube_axis * np.sin(cube_angle / 2), np.array([[np.cos(cube_angle / 2)]])))[:, 0]
-
+        rotation_vec, _ = cv2.Rodrigues(aruco_to_world[:3, :3])
+        angle = np.linalg.norm(rotation_vec)
+        axis = rotation_vec / angle
+        updated_rotation = np.vstack((axis * np.sin(angle / 2), np.array([[np.cos(angle / 2)]])))[:, 0]
 
         # convert for unity
         updated_position[2] = - updated_position[2]
         updated_rotation[2:3] = - updated_rotation[2:3]
+
+        # print(updated_position, updated_rotation)
 
         cv2.aruco.drawDetectedMarkers(color_frames, corners, ids, (0,255,0))
 
@@ -119,24 +111,33 @@ while True:
         average_position = average_time(position, time, 5000000)
         average_rotation = average_time(rotation, time, 5000000)
 
-        print(average_position, average_rotation)
+        update = True
 
-    # update sphere
+    # update 
 
-    cv2.imshow("sphere aruco", cv2.rotate(color_frames, cv2.ROTATE_90_CLOCKWISE))
+    if update:
+
+        d = {float(average_position[0]), 
+            float(average_position[1]), 
+            float(average_position[2]), 
+            float(average_rotation[0]), 
+            float(average_rotation[1]), 
+            float(average_rotation[2]), 
+            float(average_rotation[3])}
+
+        print(d)
+
+        # try:
+        #     socket.sendall(d.encode("utf-8"))
+        #     print(f"Sent {d}")
+        #     response = socket.recv(1024).decode("utf-8")
+
+
+    cv2.imshow("wave aruco", cv2.rotate(color_frames, cv2.ROTATE_90_CLOCKWISE))
 
     cv2.waitKey(1)
 
 #------------------------------------------------------------------------------
-
 client.close()
-
-# command_buffer = hl2ss_rus.command_buffer()
-# command_buffer.remove(key) # Destroy cube
-
-# ipc_unity.push(command_buffer)
-# results = ipc_unity.pull(command_buffer)
-
-# ipc_unity.close()
 
 #------------------------------------------------------------------------------
