@@ -6,7 +6,7 @@ import hl2ss_lnm
 import hl2ss_utilities
 import hl2ss_3dcv
 import numpy as np
-
+import socket
 # settings --------------------------------------------------------------------
 host = "10.29.211.183"
 port = hl2ss.StreamPort.RM_VLC_RIGHTFRONT
@@ -18,8 +18,8 @@ profile = hl2ss.VideoProfile.H265_MAIN
 bitrate = None
 
 #------------------------------------------------------------------------------
-unity_host, unity_port = "127.0.0.1", 1984
-
+unity_host, unity_port = "10.29.211.183", 1984
+# 
 # socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # try:
 #     socket.connect((unity_host, unity_port))
@@ -112,20 +112,17 @@ while True:
 
     if update:
 
-        d = {float(average_position[0]), 
-            float(average_position[1]), 
-            float(average_position[2]), 
-            float(average_rotation[0]), 
-            float(average_rotation[1]), 
-            float(average_rotation[2]), 
-            float(average_rotation[3])}
+        d = f"{float(average_position[0])},{float(average_position[1])},{float(average_position[2])},{float(average_rotation[0])},{float(average_rotation[1])},{float(average_rotation[2])},{float(average_rotation[3])}"
 
         print(d)
-
+        # 
         # try:
         #     socket.sendall(d.encode("utf-8"))
         #     print(f"Sent {d}")
         #     response = socket.recv(1024).decode("utf-8")
+        #     
+        # except Exception as e:
+        #     print(e)
 
 
     cv2.imshow("wave aruco", cv2.rotate(color_frames, cv2.ROTATE_90_COUNTERCLOCKWISE))
@@ -133,6 +130,8 @@ while True:
     cv2.waitKey(1)
 
 #------------------------------------------------------------------------------
+socket.close()
 client.close()
+cv2.destroyAllWindows()
 
 #------------------------------------------------------------------------------
