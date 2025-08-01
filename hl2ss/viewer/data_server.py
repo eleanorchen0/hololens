@@ -78,7 +78,6 @@ while True:
     extrinsics = calibration_vlc.extrinsics
 
     corners, ids, rejected = cv2.aruco.detectMarkers(color_frames, aruco_dict, parameters=aruco_parameters)
-
     update= False
 
     if (ids is not None and hl2ss.is_valid_pose(data.pose)):
