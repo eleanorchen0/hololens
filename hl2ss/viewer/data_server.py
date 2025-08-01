@@ -127,7 +127,7 @@ while True:
         print(d)
 
         try:
-            conn.sendall(data.encode('utf-8'))
+            conn.sendall(d.encode('utf-8'))
 
         except Exception as e:
             print(e)
