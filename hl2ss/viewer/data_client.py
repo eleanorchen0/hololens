@@ -26,16 +26,16 @@ ipc.open()
 display_list = hl2ss_rus.command_buffer()
 
 #------------------------------------------------------------------------------
-unity_host, unity_port = "127.0.0.1", 1984
-
-socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-try:
-    socket.connect((unity_host, unity_port))
-    print(f"Connected at {host}:{port}")
-    display_list.say(text)
-    ipc.push(display_list) 
-except Exception as e:
-    print(f"Failed to connect to {host}")
+# unity_host, unity_port = "127.0.0.1", 1984
+# 
+# socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# try:
+#     socket.connect((unity_host, unity_port))
+#     print(f"Connected at {host}:{port}")
+#     display_list.say(text)
+#     ipc.push(display_list) 
+# except Exception as e:
+#     print(f"Failed to connect to {host}")
 
 #------------------------------------------------------------------------------
 position = []
@@ -116,7 +116,7 @@ while True:
 
         average_position = average_time(position, time, 5000000)
         average_rotation = average_time(rotation, time, 5000000)
-
+        print(average_position, average_rotation)
         update = True
 
     # update 
@@ -127,13 +127,13 @@ while True:
 
         print(d)
 
-        try:
-            socket.sendall(d.encode("utf-8"))
-            print(f"Sent {d}")
-            response = socket.recv(1024).decode("utf-8")
-
-        except Exception as e:
-            print(e)
+        # try:
+        #     socket.sendall(d.encode("utf-8"))
+        #     print(f"Sent {d}")
+        #     response = socket.recv(1024).decode("utf-8")
+        # 
+        # except Exception as e:
+        #     print(e)
 
 
     cv2.imshow("wave aruco", cv2.rotate(color_frames, cv2.ROTATE_90_COUNTERCLOCKWISE))

@@ -8,6 +8,8 @@ import hl2ss_3dcv
 import numpy as np
 import socket
 import hl2ss_rus
+import plotly
+from plotly.figure_factory.utils import flatten
 
 # settings --------------------------------------------------------------------
 host = "10.29.211.183"
@@ -32,13 +34,13 @@ server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((unity_host, unity_port))
 server_socket.listen(1)
 
-print(f"Python Server listening on {host}:{port}")
+print(f"Python Server listening on {unity_host}:{unity_port}")
 conn, addr = server_socket.accept()
 print(f"Connection from {addr}")
 
 #------------------------------------------------------------------------------
-position = []
-rotation = []
+position_dict = {1:[], 2:[]}
+rotation_dict = {1:[], 2:[]}
 
 def average_time(time_position, current_time, time_interval):
     time_position[:] = [(time, position) for (time, position) in time_position if (current_time - time <= time_interval)]
@@ -47,9 +49,7 @@ def average_time(time_position, current_time, time_interval):
         return None
 
     positions = np.array([position for (_, position) in time_position])
-    average_position = positions.mean(axis=0)
-    return average_position
-
+    return positions.mean(axis=0)
 
 # aruco -----------------------------------------------------------------------
 marker_length  = 0.07
@@ -78,60 +78,51 @@ while True:
     extrinsics = calibration_vlc.extrinsics
 
     corners, ids, rejected = cv2.aruco.detectMarkers(color_frames, aruco_dict, parameters=aruco_parameters)
-    update= False
 
     if (ids is not None and hl2ss.is_valid_pose(data.pose)):
+        for i, marker_id in enumerate(ids.flatten()):
+            if marker_id not in [1,2]:
+                continue
 
-        # aruco coordinates
-        _, aruco_rotation_vec, aruco_translation_vec = cv2.solvePnP(aruco_reference[:4, :], corners[0], intrinsics[:3, :3].transpose(), None, flags=cv2.SOLVEPNP_IPPE_SQUARE)
-        aruco_rotation, _ = cv2.Rodrigues(aruco_rotation_vec)
+            # aruco coordinates
+            _, aruco_rotation_vec, aruco_translation_vec = cv2.solvePnP(aruco_reference[:4, :], corners[i], intrinsics[:3, :3].transpose(), None, flags=cv2.SOLVEPNP_IPPE_SQUARE)
+            aruco_rotation, _ = cv2.Rodrigues(aruco_rotation_vec)
 
-        aruco_pose = np.eye(4, 4, dtype = np.float32)
-        aruco_pose[:3, :3] = aruco_rotation.transpose()
-        aruco_pose[3, :3] = aruco_translation_vec.transpose()
+            aruco_pose = np.eye(4, 4, dtype = np.float32)
+            aruco_pose[:3, :3] = aruco_rotation.transpose()
+            aruco_pose[3, :3] = aruco_translation_vec.transpose()
 
-        # corners to world coordinates
-        aruco_to_world = aruco_pose @ hl2ss_3dcv.camera_to_rignode(extrinsics) @ hl2ss_3dcv.reference_to_world(data.pose)
-        aruco_reference_world = hl2ss_3dcv.transform(aruco_reference, aruco_to_world)
+            # corners to world coordinates
+            aruco_to_world = aruco_pose @ hl2ss_3dcv.camera_to_rignode(extrinsics) @ hl2ss_3dcv.reference_to_world(data.pose)
+            aruco_reference_world = hl2ss_3dcv.transform(aruco_reference, aruco_to_world)
 
-        # position
-        updated_position = aruco_reference_world[4, :]
-        rotation_vec, _ = cv2.Rodrigues(aruco_to_world[:3, :3])
-        angle = np.linalg.norm(rotation_vec)
-        axis = rotation_vec / angle
-        updated_rotation = np.vstack((axis * np.sin(angle / 2), np.array([[np.cos(angle / 2)]])))[:, 0]
+            # position
+            updated_position = aruco_reference_world[4, :]
+            rotation_vec, _ = cv2.Rodrigues(aruco_to_world[:3, :3])
+            angle = np.linalg.norm(rotation_vec)
+            axis = rotation_vec / angle
+            updated_rotation = np.vstack((axis * np.sin(angle / 2), np.array([[np.cos(angle / 2)]])))[:, 0]
 
-        # convert for unity
-        updated_position[2] = - updated_position[2]
-        updated_rotation[2:3] = - updated_rotation[2:3]
+            # convert for unity
+            updated_position[2] = - updated_position[2]
+            updated_rotation[2:3] = - updated_rotation[2:3]
 
-        # print(updated_position, updated_rotation)
+            position_dict[marker_id].append([time, updated_position.copy()])
+            rotation_dict[marker_id].append([time, updated_rotation.copy()])
 
-        cv2.aruco.drawDetectedMarkers(color_frames, corners, ids, (0,255,0))
+            cv2.aruco.drawDetectedMarkers(color_frames, [corners[i]], np.array([marker_id]), (0,255,0))        
 
-        position.append([time, updated_position.copy()])
-        rotation.append([time, updated_rotation.copy()])
+        average_position1 = average_time(position_dict[1], time, 5000000)
+        average_rotation1 = average_time(rotation_dict[1], time, 5000000)
+        average_position2 = average_time(position_dict[2], time, 5000000)
+        average_rotation2 = average_time(rotation_dict[2], time, 5000000)
 
-        average_position = average_time(position, time, 5000000)
-        average_rotation = average_time(rotation, time, 5000000)
-
-        update = True
-
-    # update 
-
-    if update:
-
-        d = f"{float(average_position[0])},{float(average_position[1])},{float(average_position[2])},{float(average_rotation[0])},{float(average_rotation[1])},{float(average_rotation[2])},{float(average_rotation[3])}"
-
-        print(d)
-
-        try:
+        if all(x is not None for x in [average_position1, average_rotation1, average_position2, average_rotation2]):
+            d = f"{float(average_position1[0])}, {float(average_position1[1])}, {float(average_position1[2])}, {float(average_rotation1[0])}, {float(average_rotation1[1])}, {float(average_rotation1[2])}, {float(average_rotation1[3])}, {float(average_position2[0])}, {float(average_position2[1])}, {float(average_position2[2])}, {float(average_rotation2[0])}, {float(average_rotation2[1])}, {float(average_rotation2[2])}, {float(average_rotation2[3])}"
+            print(d)
+            
             conn.sendall(d.encode('utf-8'))
-
-        except Exception as e:
-            print(e)
-
-
+            
     cv2.imshow("wave aruco", cv2.rotate(color_frames, cv2.ROTATE_90_COUNTERCLOCKWISE))
 
     cv2.waitKey(1)
