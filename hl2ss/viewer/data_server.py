@@ -26,7 +26,7 @@ ipc.open()
 display_list = hl2ss_rus.command_buffer()
 
 #------------------------------------------------------------------------------
-unity_host, unity_port = "127.0.0.1", 1984
+unity_host, unity_port = "10.29.224.211", 1984
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((unity_host, unity_port))
