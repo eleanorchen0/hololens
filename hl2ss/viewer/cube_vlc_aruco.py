@@ -19,7 +19,7 @@ host = "10.29.211.183" # pv still doesn't work
 # hl2ss.StreamPort.RM_VLC_RIGHTRIGHT
 port = hl2ss.StreamPort.RM_VLC_LEFTFRONT
 
-calibration_path = "/home/eleanor/Downloads/studying-main/hl2ss/viewer/calibration"
+calibration_path = 'calibration'
 
 # 0: video
 # 1: video + rig pose
