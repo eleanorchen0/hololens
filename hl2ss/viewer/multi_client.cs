@@ -14,12 +14,17 @@ public class basic_client : MonoBehaviour
     private Thread thread;
     private bool running;
 
+    public GameObject antenna;
     public GameObject wave;
+
     private string ip = "10.29.224.211";
     private int port = 1984;
 
     Vector3 position1 = new Vector3(-1, 2, 2);
     Quaternion rotation1 = Quaternion.identity;
+
+    Vector3 position2 = new Vector3(-2, 2, 1);
+    Quaternion rotation2 = Quaternion.identity;
 
     void Start()
     {
@@ -50,7 +55,7 @@ public class basic_client : MonoBehaviour
 
         if (dataReceived != null && dataReceived != "")
         {
-            (position1, rotation1) = ParseData(dataReceived);
+            (position1, rotation1, position2, rotation2) = ParseData(dataReceived);
         }
     }
 
@@ -59,7 +64,7 @@ public class basic_client : MonoBehaviour
         thread?.Abort();
     }
 
-    public static (Vector3, Quaternion) ParseData(string data)
+    public static (Vector3, Quaternion, Vector3, Quaternion) ParseData(string data)
     {
         Debug.Log(data);
         if (data.StartsWith("(") && data.EndsWith(")"))
@@ -79,18 +84,32 @@ public class basic_client : MonoBehaviour
             float.Parse(stringArray[4]),
             float.Parse(stringArray[5]),
             float.Parse(stringArray[6]));
+        
+        Vector3 pos2 = new Vector3(
+            float.Parse(stringArray[7]),
+            float.Parse(stringArray[8]),
+            float.Parse(stringArray[9]));
+
+        Quaternion rot2 = new Quaternion(
+            float.Parse(stringArray[10]),
+            float.Parse(stringArray[11]),
+            float.Parse(stringArray[12]),
+            float.Parse(stringArray[13]));
 
 
         Debug.Log(pos1);
         Debug.Log(rot1);
 
-        return (pos1, rot1);
+        return (pos1, rot1, pos2, rot2);
     }
 
     public void Update()
     {
         wave.transform.position = position1;
         wave.transform.rotation = rotation1;
+        
+        antenna.transform.position = position2;
+        antenna.transform.rotation = rotation2;
 
     }
 }
