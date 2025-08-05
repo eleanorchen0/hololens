@@ -244,7 +244,6 @@ while True:
 
         average_position = average_time(position, time, 5000000)
         average_rotation = average_time(rotation, time, 5000000)
-        print(average_position, average_rotation)
         update = True
 
     # update 
