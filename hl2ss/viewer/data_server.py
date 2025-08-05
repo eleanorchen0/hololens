@@ -156,15 +156,9 @@ mode = hl2ss.StreamMode.MODE_1
 profile = hl2ss.VideoProfile.H265_MAIN
 bitrate = None
 
-# text = "connected"
-# ipc = hl2ss_lnm.ipc_umq(host, hl2ss.IPCPort.UNITY_MESSAGE_QUEUE)
-# ipc.open()
-# 
-# display_list = hl2ss_rus.command_buffer()
-
 #------------------------------------------------------------------------------
-# unity_host, unity_port = "127.0.0.1", 1984
-# 
+unity_host, unity_port = "10.29.211.183", 1984
+
 # server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # server_socket.bind((unity_host, unity_port))
 # server_socket.listen(1)
@@ -272,5 +266,4 @@ while True:
 # conn.close()
 client.close()
 cv2.destroyAllWindows()
-# ipc.close()
 #------------------------------------------------------------------------------
