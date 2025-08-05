@@ -156,22 +156,22 @@ mode = hl2ss.StreamMode.MODE_1
 profile = hl2ss.VideoProfile.H265_MAIN
 bitrate = None
 
-text = "connected"
-ipc = hl2ss_lnm.ipc_umq(host, hl2ss.IPCPort.UNITY_MESSAGE_QUEUE)
-ipc.open()
-
-display_list = hl2ss_rus.command_buffer()
+# text = "connected"
+# ipc = hl2ss_lnm.ipc_umq(host, hl2ss.IPCPort.UNITY_MESSAGE_QUEUE)
+# ipc.open()
+# 
+# display_list = hl2ss_rus.command_buffer()
 
 #------------------------------------------------------------------------------
-unity_host, unity_port = "127.0.0.1", 1984
-
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind((unity_host, unity_port))
-server_socket.listen(1)
-
-print(f"Python Server listening on {unity_host}:{unity_port}")
-conn, addr = server_socket.accept()
-print(f"Connection from {addr}")
+# unity_host, unity_port = "127.0.0.1", 1984
+# 
+# server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# server_socket.bind((unity_host, unity_port))
+# server_socket.listen(1)
+# 
+# print(f"Python Server listening on {unity_host}:{unity_port}")
+# conn, addr = server_socket.accept()
+# print(f"Connection from {addr}")
 
 #------------------------------------------------------------------------------
 position = []
@@ -261,16 +261,16 @@ while True:
 
         print(d)
 
-        conn.sendall(d.encode('utf-8'))
+        # conn.sendall(d.encode('utf-8'))
 
     cv2.imshow("wave aruco", cv2.rotate(color_frames, cv2.ROTATE_90_COUNTERCLOCKWISE))
 
     cv2.waitKey(1)
 
 #------------------------------------------------------------------------------
-server_socket.close()
-conn.close()
+# server_socket.close()
+# conn.close()
 client.close()
 cv2.destroyAllWindows()
-ipc.close()
+# ipc.close()
 #------------------------------------------------------------------------------
