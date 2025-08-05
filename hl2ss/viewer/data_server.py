@@ -8,8 +8,6 @@ import hl2ss_3dcv
 import numpy as np
 import socket
 import hl2ss_rus
-import plotly
-from plotly.figure_factory.utils import flatten
 
 # settings --------------------------------------------------------------------
 host = "10.29.211.183"
