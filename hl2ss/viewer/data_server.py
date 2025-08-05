@@ -157,7 +157,7 @@ profile = hl2ss.VideoProfile.H265_MAIN
 bitrate = None
 
 #------------------------------------------------------------------------------
-unity_host, unity_port = "10.29.211.183", 1984
+unity_host, unity_port = "0.0.0.0", 1984
 
 # server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # server_socket.bind((unity_host, unity_port))
