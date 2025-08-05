@@ -15,8 +15,6 @@ public class basic_client : MonoBehaviour
     private bool running;
 
     public GameObject antenna;
-    public GameObject wave;
-
     private string ip = "10.29.224.211";
     private int port = 1984;
 
@@ -105,8 +103,8 @@ public class basic_client : MonoBehaviour
 
     public void Update()
     {
-        wave.transform.position = position1;
-        wave.transform.rotation = rotation1;
+        transform.position = position1;
+        transform.rotation = rotation1;
         
         antenna.transform.position = position2;
         antenna.transform.rotation = rotation2;
