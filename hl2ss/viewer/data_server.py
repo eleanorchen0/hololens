@@ -53,7 +53,6 @@ aruco_parameters = cv2.aruco.DetectorParameters()
 aruco_half = marker_length/2
 aruco_reference = np.array([[-aruco_half, aruco_half, 0], [aruco_half, aruco_half, 0], [aruco_half, -aruco_half, 0], [-aruco_half, -aruco_half, 0], [0, 0, marker_length / 2]], dtype=np.float32)
 
-# wave ------------------------------------------------------------------------
 client = hl2ss_lnm.rx_rm_vlc(host, port, mode=mode, profile=profile, bitrate=bitrate)
 client.open()
 
@@ -108,24 +107,26 @@ while True:
 
             cv2.aruco.drawDetectedMarkers(color_frames, [corners[i]], np.array([marker_id]), (0,255,0))
         
+        # averaging different aruco markers for position/rotation of antenna + averaging over interval
         average_pos = np.array([average_time(position_dict[1], time, 5000000), average_time(position_dict[0], time, 5000000)])
         average_rot = np.array([average_time(rotation_dict[1], time, 5000000), average_time(rotation_dict[0], time, 5000000)])
-        wave_pos = average_pos.mean(axis=0)
-        wave_rot = average_rot.mean(axis=0)
+        antenna_pos = average_pos.mean(axis=0)
+        antenna_rot = average_rot.mean(axis=0)
         
-        antenna_pos = average_time(position_dict[2], time, 5000000)
-        antenna_rot = average_time(rotation_dict[2], time, 5000000)
+        # averaging for end point of wave:
+        end_pos = average_time(position_dict[2], time, 5000000)
+        end_rot = average_time(rotation_dict[2], time, 5000000)
 
-        wave_position = format_vector(wave_pos if wave_pos is not None else [None, None, None])
-        wave_rotation = format_vector(wave_rot if wave_rot is not None else [None, None, None, None])
-        antenna_position = format_vector(antenna_pos if antenna_pos is not None else [None, None, None])
-        antenna_rotation = format_vector(antenna_rot if antenna_rot is not None else [None, None, None, None])
+        antenna_position = format_vector(antenna_pos if antenna_pos is not None else [None]*3)
+        antenna_rotation = format_vector(antenna_rot if antenna_rot is not None else [None]*4)
+        end_position = format_vector(end_pos if end_pos is not None else [None]*3)
+        end_rotation = format_vector(end_rot if end_rot is not None else [None]*4)
 
-        d = f"{wave_position}, {wave_rotation}, {antenna_position}, {antenna_rotation}"
+        d = f"{antenna_position}, {antenna_rotation}, {end_position}, {end_rotation}"
 
         conn.sendall(d.encode('utf-8'))
 
-    cv2.imshow("wave aruco", cv2.rotate(color_frames, cv2.ROTATE_90_COUNTERCLOCKWISE))
+    cv2.imshow("aruco", cv2.rotate(color_frames, cv2.ROTATE_90_COUNTERCLOCKWISE))
 
     cv2.waitKey(1)
 
