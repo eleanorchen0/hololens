@@ -43,6 +43,9 @@ def average_time(time_position, current_time, time_interval):
     positions = np.array([position for (_, position) in time_position])
     return positions.mean(axis=0)
 
+def format_vector(v):
+    return ','.join(str(float(x)) if x is not None else 'NaN' for x in v)
+
 # aruco -----------------------------------------------------------------------
 marker_length  = 0.07
 
@@ -90,6 +93,8 @@ while True:
 
             # position
             updated_position = aruco_reference_world[4, :]
+            
+            #rotation
             rotation_vec, _ = cv2.Rodrigues(aruco_to_world[:3, :3])
             angle = np.linalg.norm(rotation_vec)
             axis = rotation_vec / angle
@@ -108,12 +113,15 @@ while True:
         average_rotation1 = average_time(rotation_dict[1], time, 5000000)
         average_position2 = average_time(position_dict[2], time, 5000000)
         average_rotation2 = average_time(rotation_dict[2], time, 5000000)
+        
+        position1 = format_vector(average_position1 if average_position1 is not None else [None, None, None])
+        rotation1 = format_vector(average_rotation1 if average_rotation1 is not None else [None, None, None, None])
+        position2 = format_vector(average_position2 if average_position2 is not None else [None, None, None])
+        rotation2 = format_vector(average_rotation2 if average_rotation2 is not None else [None, None, None, None])
 
-        if all(x is not None for x in [average_position1, average_rotation1, average_position2, average_rotation2]):
-            d = f"{float(average_position1[0])}, {float(average_position1[1])}, {float(average_position1[2])}, {float(average_rotation1[0])}, {float(average_rotation1[1])}, {float(average_rotation1[2])}, {float(average_rotation1[3])}, {float(average_position2[0])}, {float(average_position2[1])}, {float(average_position2[2])}, {float(average_rotation2[0])}, {float(average_rotation2[1])}, {float(average_rotation2[2])}, {float(average_rotation2[3])}"
-            print(d)
+        d = f"{position1}, {rotation1}, {position2}, {rotation2}"
 
-            conn.sendall(d.encode('utf-8'))
+        conn.sendall(d.encode('utf-8'))
 
     cv2.imshow("wave aruco", cv2.rotate(color_frames, cv2.ROTATE_90_COUNTERCLOCKWISE))
 
