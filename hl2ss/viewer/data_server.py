@@ -31,9 +31,8 @@ conn, addr = server_socket.accept()
 print(f"Connection from {addr}")
 
 #------------------------------------------------------------------------------
-position_dict = {1:[], 2:[]}
-rotation_dict = {1:[], 2:[]}
-
+position_dict = {0:[], 1:[], 2:[]}
+rotation_dict = {0:[], 1:[], 2:[]}
 def average_time(time_position, current_time, time_interval):
     time_position[:] = [(time, position) for (time, position) in time_position if (current_time - time <= time_interval)]
 
@@ -76,7 +75,7 @@ while True:
 
     if (ids is not None and hl2ss.is_valid_pose(data.pose)):
         for i, marker_id in enumerate(ids.flatten()):
-            if marker_id not in [1,2]:
+            if marker_id not in [0,1,2]:
                 continue
 
             # aruco coordinates
@@ -108,18 +107,21 @@ while True:
             rotation_dict[marker_id].append([time, updated_rotation.copy()])
 
             cv2.aruco.drawDetectedMarkers(color_frames, [corners[i]], np.array([marker_id]), (0,255,0))
+        
+        average_pos = np.array([average_time(position_dict[1], time, 5000000), average_time(position_dict[0], time, 5000000)])
+        average_rot = np.array([average_time(rotation_dict[1], time, 5000000), average_time(rotation_dict[0], time, 5000000)])
+        wave_pos = average_pos.mean(axis=0)
+        wave_rot = average_rot.mean(axis=0)
+        
+        antenna_pos = average_time(position_dict[2], time, 5000000)
+        antenna_rot = average_time(rotation_dict[2], time, 5000000)
 
-        average_position1 = average_time(position_dict[1], time, 5000000)
-        average_rotation1 = average_time(rotation_dict[1], time, 5000000)
-        average_position2 = average_time(position_dict[2], time, 5000000)
-        average_rotation2 = average_time(rotation_dict[2], time, 5000000)
+        wave_position = format_vector(wave_pos if wave_pos is not None else [None, None, None])
+        wave_rotation = format_vector(wave_rot if wave_rot is not None else [None, None, None, None])
+        antenna_position = format_vector(antenna_pos if antenna_pos is not None else [None, None, None])
+        antenna_rotation = format_vector(antenna_rot if antenna_rot is not None else [None, None, None, None])
 
-        position1 = format_vector(average_position1 if average_position1 is not None else [None, None, None])
-        rotation1 = format_vector(average_rotation1 if average_rotation1 is not None else [None, None, None, None])
-        position2 = format_vector(average_position2 if average_position2 is not None else [None, None, None])
-        rotation2 = format_vector(average_rotation2 if average_rotation2 is not None else [None, None, None, None])
-
-        d = f"{position1}, {rotation1}, {position2}, {rotation2}"
+        d = f"{wave_position}, {wave_rotation}, {antenna_position}, {antenna_rotation}"
 
         conn.sendall(d.encode('utf-8'))
 

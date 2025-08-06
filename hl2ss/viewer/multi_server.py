@@ -114,6 +114,8 @@ while True:
         average_position2 = average_time(position_dict[2], time, 5000000)
         average_rotation2 = average_time(rotation_dict[2], time, 5000000)
         
+        print(average_position1, average_rotation1, average_position2, average_rotation2)
+        
         position1 = format_vector(average_position1 if average_position1 is not None else [None, None, None])
         rotation1 = format_vector(average_rotation1 if average_rotation1 is not None else [None, None, None, None])
         position2 = format_vector(average_position2 if average_position2 is not None else [None, None, None])
