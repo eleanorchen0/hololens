@@ -109,19 +109,17 @@ while True:
 
             cv2.aruco.drawDetectedMarkers(color_frames, [corners[i]], np.array([marker_id]), (0,255,0))
 
-        average_position1 = average_time(position_dict[1], time, 5000000)
-        average_rotation1 = average_time(rotation_dict[1], time, 5000000)
-        average_position2 = average_time(position_dict[2], time, 5000000)
-        average_rotation2 = average_time(rotation_dict[2], time, 5000000)
+        average_start = average_time(position_dict[1], time, 5000000)
+        average_rotation = average_time(rotation_dict[1], time, 5000000)
+        average_end = average_time(position_dict[2], time, 5000000)
         
-        print(average_position1, average_rotation1, average_position2, average_rotation2)
+        print(average_start, average_rotation, average_end)
         
-        position1 = format_vector(average_position1 if average_position1 is not None else [None, None, None])
-        rotation1 = format_vector(average_rotation1 if average_rotation1 is not None else [None, None, None, None])
-        position2 = format_vector(average_position2 if average_position2 is not None else [None, None, None])
-        rotation2 = format_vector(average_rotation2 if average_rotation2 is not None else [None, None, None, None])
+        start_position = format_vector(average_start if average_start is not None else [None, None, None])
+        rotation = format_vector(average_rotation if average_rotation is not None else [None, None, None, None])
+        end_position = format_vector(average_end if average_end is not None else [None, None, None])
 
-        d = f"{position1}, {rotation1}, {position2}, {rotation2}"
+        d = f"{start_position}, {rotation}, {end_position}"
 
         conn.sendall(d.encode('utf-8'))
 
