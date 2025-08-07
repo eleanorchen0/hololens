@@ -1,16 +1,9 @@
 using UnityEngine;
-using System;
-using MixedReality.Toolkit.UX;
-
+using System.Collections.Generic;
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
-
-public class client_unity : MonoBehaviour
+public class SineRope : MonoBehaviour
 {
-    [Header("Wave Settings")]
-    public float ropeLength = 2f;
-    public float sineAmplitude = 0.5f;
-    public float sineFrequency = 1f;
-
+    [Header("Wave Settings")] public float sineAmplitude = 0.5f; public float sineFrequency = 1f;
     [Header("Mesh Resolution")]
     public float samplesPerMeter = 10f;
     public int radialSegments = 8;
@@ -25,36 +18,40 @@ public class client_unity : MonoBehaviour
     public bool showCloth = true;
     public Material clothMaterial;
 
-    [Header("Directional Control")]
-    public Vector3 startPoint = Vector3.zero;
-    public Vector3 waveDirection = Vector3.right;   // Direction rope flows
-    public Vector3 sineDirection = Vector3.up;      // Direction sine wave displaces
+    [Header("Endpoints")]
+    public Vector3 startPoint = new Vector3(1, 1, 4);
+    public Vector3 endPoint = new Vector3(5, 1, 4);
+    public Vector3 sineDirection = Vector3.up;
 
     private int pathResolution;
+    private Vector3 waveDirection;
+    private float ropeLength;
 
     void Start()
     {
+        UpdateDirectionAndLength();
         pathResolution = Mathf.Max(2, Mathf.CeilToInt(ropeLength * samplesPerMeter));
 
         GenerateSineRope();
 
         if (showCenterline)
-        {
             GenerateCenterlineRope();
-        }
 
         if (showCloth)
-        {
             GenerateClothBetweenCenterAndSine();
-        }
     }
 
     void OnValidate()
     {
-        if (waveDirection == Vector3.zero) waveDirection = Vector3.right;
+        UpdateDirectionAndLength();
         if (sineDirection == Vector3.zero) sineDirection = Vector3.up;
-        waveDirection.Normalize();
         sineDirection.Normalize();
+    }
+
+    void UpdateDirectionAndLength()
+    {
+        waveDirection = (endPoint - startPoint).normalized;
+        ropeLength = Vector3.Distance(startPoint, endPoint);
     }
 
     void GenerateSineRope()
@@ -136,11 +133,9 @@ public class client_unity : MonoBehaviour
             int i2 = i0 + 2;
             int i3 = i0 + 3;
 
-            // Front face
             triangles.Add(i0); triangles.Add(i3); triangles.Add(i1);
             triangles.Add(i0); triangles.Add(i2); triangles.Add(i3);
 
-            // Back face (reversed)
             triangles.Add(i1); triangles.Add(i3); triangles.Add(i0);
             triangles.Add(i3); triangles.Add(i2); triangles.Add(i0);
         }
@@ -167,10 +162,7 @@ public class client_unity : MonoBehaviour
         for (int i = 0; i < pathResolution; i++)
         {
             path[i] = pointFunc(i);
-            if (i > 0)
-                tangents[i] = (path[i] - path[i - 1]).normalized;
-            else
-                tangents[i] = waveDirection; // default initial direction
+            tangents[i] = i > 0 ? (path[i] - path[i - 1]).normalized : waveDirection;
         }
 
         for (int i = 0; i < pathResolution; i++)
@@ -198,13 +190,8 @@ public class client_unity : MonoBehaviour
                 int currentNext = i * radialSegments + (j + 1) % radialSegments;
                 int nextNext = (i + 1) * radialSegments + (j + 1) % radialSegments;
 
-                triangles.Add(current);
-                triangles.Add(nextNext);
-                triangles.Add(next);
-
-                triangles.Add(current);
-                triangles.Add(currentNext);
-                triangles.Add(nextNext);
+                triangles.Add(current); triangles.Add(nextNext); triangles.Add(next);
+                triangles.Add(current); triangles.Add(currentNext); triangles.Add(nextNext);
             }
         }
 
@@ -217,20 +204,34 @@ public class client_unity : MonoBehaviour
         return mesh;
     }
 
-    public void UpdateWaveParams(float frequency, float amplitude, float samples, float planeAngleDegrees, float length)
+    public void UpdateWaveParams(float frequency, float amplitude, float samples)
     {
         sineFrequency = frequency;
         sineAmplitude = amplitude;
         samplesPerMeter = samples;
-        ropeLength = length;
 
-        // Convert angle (degrees) to direction in XY plane
-        float radians = planeAngleDegrees * Mathf.Deg2Rad;
-        sineDirection = new Vector3(Mathf.Cos(radians), Mathf.Sin(radians), 0f);
 
-        // Regenerate everything
         foreach (Transform child in transform)
-            Destroy(child.gameObject);  // destroy cloth and centerline
-        Start();  // reinitialize rope
+            Destroy(child.gameObject);
+        Start();
     }
+
+    public void UpdateStart(Vector3 start)
+    {
+        startPoint = start;
+
+        foreach (Transform child in transform)
+            Destroy(child.gameObject);
+        Start();
+    }
+
+    public void UpdateEnd(Vector3 end)
+    {
+        endPoint = end;
+
+        foreach (Transform child in transform)
+            Destroy(child.gameObject);
+        Start();
+    }
+
 }
