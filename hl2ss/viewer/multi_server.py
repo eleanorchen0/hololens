@@ -47,6 +47,9 @@ def average_time(time_position, current_time, time_interval):
 def format_vector(v):
     return ','.join(str(float(x)) if x is not None else 'NaN' for x in v)
 
+def form(v):
+    return v if v is not None else 'NaN'
+
 # aruco -----------------------------------------------------------------------
 marker_length  = 0.07
 
@@ -111,7 +114,7 @@ while True:
         cv2.aruco.drawDetectedMarkers(color_frames, [corners[i]], np.array([marker_id]), (0,255,0))
 
         average_start = average_time(position_dict[1], time, 5000000)
-        average_rotation = average_time(rotation_dict[1], time, 5000000)
+        average_rotation = form(average_time(rotation_dict[1], time, 5000000))
         average_end = average_time(position_dict[2], time, 5000000)
 
         start_position = format_vector(average_start if average_start is not None else [None, None, None])

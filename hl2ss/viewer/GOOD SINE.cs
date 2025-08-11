@@ -20,15 +20,19 @@ public class SineRope : MonoBehaviour
 
     [Header("Endpoints")]
     public Vector3 startPoint = new Vector3(1, 1, 4);
-    public Vector3 endPoint = new Vector3(5, 1, 4);
+    public Vector3 endPoint = new Vector3(5, -6, 4);
     public Vector3 sineDirection = Vector3.up;
 
     private int pathResolution;
     private Vector3 waveDirection;
-    private float ropeLength;
+    public float ropeLength;
+    public float angle;
 
     void Start()
     {
+        if (!Application.isPlaying)
+            return;
+
         UpdateDirectionAndLength();
         pathResolution = Mathf.Max(2, Mathf.CeilToInt(ropeLength * samplesPerMeter));
 
@@ -48,14 +52,21 @@ public class SineRope : MonoBehaviour
         sineDirection.Normalize();
     }
 
+    void Awake()
+    {
+        GetComponent<MeshFilter>().mesh = null; // Clear any serialized mesh
+    }
+
     void UpdateDirectionAndLength()
     {
         waveDirection = (endPoint - startPoint).normalized;
         ropeLength = Vector3.Distance(startPoint, endPoint);
+        sineDirection = Vector3.Cross(waveDirection, Vector3.forward).normalized;
     }
 
     void GenerateSineRope()
     {
+        
         Mesh mesh = GenerateRopeMesh(
             pointFunc: i =>
             {
@@ -97,6 +108,7 @@ public class SineRope : MonoBehaviour
 
     void GenerateClothBetweenCenterAndSine()
     {
+
         GameObject cloth = new GameObject("ClothMesh");
         cloth.transform.parent = this.transform;
         cloth.transform.localPosition = Vector3.zero;
@@ -152,6 +164,7 @@ public class SineRope : MonoBehaviour
 
     Mesh GenerateRopeMesh(System.Func<int, Vector3> pointFunc, float radius)
     {
+
         List<Vector3> vertices = new List<Vector3>();
         List<int> triangles = new List<int>();
         List<Vector2> uvs = new List<Vector2>();
@@ -203,6 +216,8 @@ public class SineRope : MonoBehaviour
         mesh.RecalculateNormals();
         return mesh;
     }
+
+    
 
     public void UpdateWaveParams(float frequency, float amplitude, float samples)
     {

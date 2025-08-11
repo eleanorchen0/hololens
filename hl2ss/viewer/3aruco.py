@@ -8,6 +8,7 @@ import hl2ss_3dcv
 import numpy as np
 import socket
 import hl2ss_rus
+import re
 
 # settings --------------------------------------------------------------------
 host = "10.29.211.183"
@@ -19,7 +20,7 @@ mode = hl2ss.StreamMode.MODE_1
 profile = hl2ss.VideoProfile.H265_MAIN
 bitrate = None
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 unity_host, unity_port = "0.0.0.0", 1984
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -31,10 +32,8 @@ conn, addr = server_socket.accept()
 print(f"Connection from {addr}")
 
 #------------------------------------------------------------------------------
-target_id = 0
-# 0 is metal, full reflection
-position_dict = {1:[], target_id:[]}
-rotation_dict = {1:[], target_id:[]}
+position_dict = {1:[], 2:[]}
+rotation_dict = {1:[], 2:[], "z":[]}
 
 def average_time(time_position, current_time, time_interval):
     time_position[:] = [(time, position) for (time, position) in time_position if (current_time - time <= time_interval)]
@@ -47,6 +46,9 @@ def average_time(time_position, current_time, time_interval):
 
 def format_vector(v):
     return ','.join(str(float(x)) if x is not None else 'NaN' for x in v)
+
+def form(v):
+    return v if v is not None else 'NaN'
 
 # aruco -----------------------------------------------------------------------
 marker_length  = 0.07
@@ -78,7 +80,7 @@ while True:
 
     if (ids is not None and hl2ss.is_valid_pose(data.pose)):
         for i, marker_id in enumerate(ids.flatten()):
-            if marker_id not in [1,target_id]:
+            if marker_id not in [1,2]:
                 continue
 
             # aruco coordinates
@@ -107,22 +109,20 @@ while True:
             updated_rotation[2:3] = - updated_rotation[2:3]
 
             position_dict[marker_id].append([time, updated_position.copy()])
-            rotation_dict[marker_id].append([time, updated_rotation.copy()])
+            # don't really need this part, angle is calculated by the unity script anyway
+            # rotation_dict[marker_id].append([time, updated_rotation[2]])
 
-            cv2.aruco.drawDetectedMarkers(color_frames, [corners[i]], np.array([marker_id]), (0,255,0))
+        cv2.aruco.drawDetectedMarkers(color_frames, [corners[i]], np.array([marker_id]), (0,255,0))
 
         average_start = average_time(position_dict[1], time, 5000000)
-        average_rotation = average_time(rotation_dict[1], time, 5000000)
-        average_end = average_time(position_dict[target_id], time, 5000000)
-
-        print(average_start, average_rotation, average_end)
+        # average_rotation = form(average_time(rotation_dict[1], time, 5000000))
+        average_end = average_time(position_dict[2], time, 5000000)
 
         start_position = format_vector(average_start if average_start is not None else [None, None, None])
-        rotation = format_vector(average_rotation if average_rotation is not None else [None, None, None, None])
         end_position = format_vector(average_end if average_end is not None else [None, None, None])
-        
-        #only need the z rotation of the wave for now, assume wave is going to stay on a single plane
-        d = f"{start_position}, {rotation[2]}, {end_position}, {target_id}"
+
+        d = f"{start_position}, {end_position}"
+        print(d)
 
         conn.sendall(d.encode('utf-8'))
 

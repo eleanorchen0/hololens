@@ -2,7 +2,9 @@ using System;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class client : MonoBehaviour
 {
@@ -13,12 +15,15 @@ public class client : MonoBehaviour
 
     public GameObject EndPoint;
     public SineRope rope;
+    public ReflectedRope reflection;
+    public TransmittedRope transmission;
 
     private string ip = "10.29.224.211";
     private int port = 1984;
 
     Vector3 startPoint = new Vector3(0, 1.5f, 2);
-    Quaternion rotation = Quaternion.identity;
+    //float rotation = 0;
+    public float angle = 0;
     Vector3 endPoint = new Vector3(-0.5f, 1.5f, 2);
 
     void Start()
@@ -50,7 +55,7 @@ public class client : MonoBehaviour
 
         if (!string.IsNullOrEmpty(dataReceived))
         {
-            (startPoint, rotation, endPoint) = ParseData(dataReceived);
+            (startPoint, endPoint) = ParseData(dataReceived);
         }
     }
 
@@ -59,7 +64,7 @@ public class client : MonoBehaviour
         thread?.Abort();
     }
 
-    public static (Vector3, Quaternion, Vector3) ParseData(string data)
+    public static (Vector3, Vector3) ParseData(string data)
     {
         string[] stringArray = data.Split(',');
 
@@ -73,24 +78,32 @@ public class client : MonoBehaviour
         }
 
         Vector3 pos1 = new Vector3(values[0], values[1] + 1.6f, values[2]);
-        Quaternion rot1 = new Quaternion(values[3], values[4], values[5], values[6]);
-        Vector3 pos2 = new Vector3(values[7], values[8] + 1.6f, values[9]);
+        Vector3 pos2 = new Vector3(values[3], values[4] + 1.6f, values[5]);
 
-        return (pos1, rot1, pos2);
+        return (pos1, pos2);
+    }
+
+    public float CalculateAngle(Vector3 pos1, Vector3 pos2)
+    {
+        return Mathf.Atan2(pos2.y - pos1.y, Mathf.Abs(pos2.x - pos1.x)) * Mathf.Rad2Deg;
     }
 
     void Update()
     {
+
         if (!float.IsNaN(startPoint.x))
         {
             rope.UpdateStart(startPoint);
-            //transform.rotation = rotation1;
         }
 
         if (!float.IsNaN(endPoint.x))
         {
             EndPoint.transform.position = endPoint;
             rope.UpdateEnd(endPoint);
+            reflection.transform.position = endPoint;
+            transmission.transform.position = endPoint;
         }
+        angle = Mathf.Abs(CalculateAngle(endPoint, startPoint));
+        Debug.Log(angle);
     }
 }

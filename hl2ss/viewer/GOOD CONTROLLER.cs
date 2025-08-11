@@ -12,6 +12,8 @@ public class SineWaveController : MonoBehaviour
     public TMP_Text freqLabel, ampLabel, samplesLabel;
 
     public SineRope rope;
+    public ReflectedRope reflection;
+    public TransmittedRope transmission;
 
     void Start()
     {
@@ -33,6 +35,8 @@ public class SineWaveController : MonoBehaviour
         ampLabel.text = $"Amp: {amp:F2}";
         samplesLabel.text = $"Res: {res:F1}";
 
-        //rope.UpdateWaveParams(freq, amp, res);
+        rope.UpdateWaveParams(freq, amp, res);
+        reflection.UpdateWaveParams(freq, amp, res);
+        transmission.UpdateWaveParams(freq, amp, res);
     }
 }
