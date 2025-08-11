@@ -33,7 +33,7 @@ print(f"Connection from {addr}")
 
 #------------------------------------------------------------------------------
 position_dict = {1:[], 2:[]}
-rotation_dict = {1:[], 2:[], "z":[]}
+rotation_dict = {1:[], 2:[]}
 
 def average_time(time_position, current_time, time_interval):
     time_position[:] = [(time, position) for (time, position) in time_position if (current_time - time <= time_interval)]
@@ -46,9 +46,6 @@ def average_time(time_position, current_time, time_interval):
 
 def format_vector(v):
     return ','.join(str(float(x)) if x is not None else 'NaN' for x in v)
-
-def form(v):
-    return v if v is not None else 'NaN'
 
 # aruco -----------------------------------------------------------------------
 marker_length  = 0.07
@@ -109,18 +106,16 @@ while True:
             updated_rotation[2:3] = - updated_rotation[2:3]
 
             position_dict[marker_id].append([time, updated_position.copy()])
-            rotation_dict[marker_id].append([time, updated_rotation[2]])
 
         cv2.aruco.drawDetectedMarkers(color_frames, [corners[i]], np.array([marker_id]), (0,255,0))
 
         average_start = average_time(position_dict[1], time, 5000000)
-        average_rotation = form(average_time(rotation_dict[1], time, 5000000))
         average_end = average_time(position_dict[2], time, 5000000)
 
         start_position = format_vector(average_start if average_start is not None else [None, None, None])
         end_position = format_vector(average_end if average_end is not None else [None, None, None])
     
-        d = f"{start_position}, {average_rotation}, {end_position}"
+        d = f"{start_position}, {end_position}"
         print(d)
 
         conn.sendall(d.encode('utf-8'))

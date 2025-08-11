@@ -1,14 +1,12 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Data;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
-public class ReflectedRope : MonoBehaviour
+public class TransmittedRope : MonoBehaviour
 {
     [Header("Link to sine")]
     [SerializeField] private client client;
     [SerializeField] private SineRope rope;
-
 
     [Header("Wave Settings")]
     public float ropeLength = 2f;
@@ -55,7 +53,7 @@ public class ReflectedRope : MonoBehaviour
     private void Update()
     {
         UpdateLength(rope.ropeLength);
-        angle = client.angle;
+        angle = - client.angle;
         transform.position = rope.endPoint;
     }
 
@@ -63,7 +61,7 @@ public class ReflectedRope : MonoBehaviour
     {
         float rad = angle * Mathf.Deg2Rad;
         waveDirection = rope.waveDirection;
-        sineDirection = - rope.sineDirection;
+        sineDirection = rope.sineDirection;
     }
 
     void GenerateSineRope()
@@ -82,6 +80,7 @@ public class ReflectedRope : MonoBehaviour
 
         GetComponent<MeshFilter>().mesh = mesh;
     }
+
 
     void GenerateClothBetweenCenterAndSine()
     {

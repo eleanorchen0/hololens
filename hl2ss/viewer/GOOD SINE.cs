@@ -9,11 +9,6 @@ public class SineRope : MonoBehaviour
     public int radialSegments = 8;
     public float ropeRadius = 0.1f;
 
-    [Header("Centerline Rope")]
-    public bool showCenterline = true;
-    public Material centerlineMaterial;
-    public float centerlineRopeRadius = 0.03f;
-
     [Header("Cloth Settings")]
     public bool showCloth = true;
     public Material clothMaterial;
@@ -24,9 +19,10 @@ public class SineRope : MonoBehaviour
     public Vector3 sineDirection = Vector3.up;
 
     private int pathResolution;
-    private Vector3 waveDirection;
+    public Vector3 waveDirection;
     public float ropeLength;
-    public float angle;
+    public float rotation;
+    public GameObject material;
 
     void Start()
     {
@@ -38,9 +34,6 @@ public class SineRope : MonoBehaviour
 
         GenerateSineRope();
 
-        if (showCenterline)
-            GenerateCenterlineRope();
-
         if (showCloth)
             GenerateClothBetweenCenterAndSine();
     }
@@ -48,7 +41,7 @@ public class SineRope : MonoBehaviour
     void OnValidate()
     {
         UpdateDirectionAndLength();
-        if (sineDirection == Vector3.zero) sineDirection = Vector3.up;
+        sineDirection = Vector3.up;
         sineDirection.Normalize();
     }
 
@@ -62,11 +55,13 @@ public class SineRope : MonoBehaviour
         waveDirection = (endPoint - startPoint).normalized;
         ropeLength = Vector3.Distance(startPoint, endPoint);
         sineDirection = Vector3.Cross(waveDirection, Vector3.forward).normalized;
+        material.transform.position = endPoint;
+        material.transform.rotation = Quaternion.Euler(0, CalculateAngle(startPoint, endPoint), 0);
     }
 
     void GenerateSineRope()
     {
-        
+
         Mesh mesh = GenerateRopeMesh(
             pointFunc: i =>
             {
@@ -81,31 +76,6 @@ public class SineRope : MonoBehaviour
 
         GetComponent<MeshFilter>().mesh = mesh;
     }
-
-    void GenerateCenterlineRope()
-    {
-        GameObject centerline = new GameObject("CenterlineRope");
-        centerline.transform.parent = this.transform;
-        centerline.transform.localPosition = Vector3.zero;
-
-        MeshFilter mf = centerline.AddComponent<MeshFilter>();
-        MeshRenderer mr = centerline.AddComponent<MeshRenderer>();
-        if (centerlineMaterial != null)
-            mr.material = centerlineMaterial;
-
-        Mesh mesh = GenerateRopeMesh(
-            pointFunc: i =>
-            {
-                float t = i / (float)(pathResolution - 1);
-                float dist = ropeLength * t;
-                return startPoint + waveDirection * dist;
-            },
-            radius: centerlineRopeRadius
-        );
-
-        mf.mesh = mesh;
-    }
-
     void GenerateClothBetweenCenterAndSine()
     {
 
@@ -217,7 +187,10 @@ public class SineRope : MonoBehaviour
         return mesh;
     }
 
-    
+    private float CalculateAngle(Vector3 start, Vector3 end)
+    {
+        return Vector3.Angle(start, end);
+    }
 
     public void UpdateWaveParams(float frequency, float amplitude, float samples)
     {

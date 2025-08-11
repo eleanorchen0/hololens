@@ -21,7 +21,7 @@ public class SineWaveController : MonoBehaviour
         sliderAmplitude.OnValueUpdated.AddListener(data => UpdateRope());
         sliderResolution.OnValueUpdated.AddListener(data => UpdateRope());
 
-        UpdateRope(); // Initial update
+        UpdateRope();
     }
 
     public void UpdateRope()
@@ -36,7 +36,7 @@ public class SineWaveController : MonoBehaviour
         samplesLabel.text = $"Res: {res:F1}";
 
         rope.UpdateWaveParams(freq, amp, res);
-        reflection.UpdateWaveParams(freq, amp, res);
-        transmission.UpdateWaveParams(freq, amp, res);
+        reflection.UpdateWaveParams(freq, amp - 0.01f, res);
+        transmission.UpdateWaveParams(freq, amp - 0.075f, res);
     }
 }

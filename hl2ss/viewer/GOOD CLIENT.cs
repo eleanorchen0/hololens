@@ -25,6 +25,7 @@ public class client : MonoBehaviour
     //float rotation = 0;
     public float angle = 0;
     Vector3 endPoint = new Vector3(-0.5f, 1.5f, 2);
+    public float width;
 
     void Start()
     {
@@ -100,10 +101,7 @@ public class client : MonoBehaviour
         {
             EndPoint.transform.position = endPoint;
             rope.UpdateEnd(endPoint);
-            reflection.transform.position = endPoint;
-            transmission.transform.position = endPoint;
         }
         angle = Mathf.Abs(CalculateAngle(endPoint, startPoint));
-        Debug.Log(angle);
     }
 }
