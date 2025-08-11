@@ -31,8 +31,11 @@ conn, addr = server_socket.accept()
 print(f"Connection from {addr}")
 
 #------------------------------------------------------------------------------
-position_dict = {0:[], 1:[], 2:[]}
-rotation_dict = {0:[], 1:[], 2:[]}
+target_id = 0
+# 0 is metal, full reflection
+position_dict = {1:[], target_id:[]}
+rotation_dict = {1:[], target_id:[]}
+
 def average_time(time_position, current_time, time_interval):
     time_position[:] = [(time, position) for (time, position) in time_position if (current_time - time <= time_interval)]
 
@@ -53,6 +56,7 @@ aruco_parameters = cv2.aruco.DetectorParameters()
 aruco_half = marker_length/2
 aruco_reference = np.array([[-aruco_half, aruco_half, 0], [aruco_half, aruco_half, 0], [aruco_half, -aruco_half, 0], [-aruco_half, -aruco_half, 0], [0, 0, marker_length / 2]], dtype=np.float32)
 
+# wave ------------------------------------------------------------------------
 client = hl2ss_lnm.rx_rm_vlc(host, port, mode=mode, profile=profile, bitrate=bitrate)
 client.open()
 
@@ -74,7 +78,7 @@ while True:
 
     if (ids is not None and hl2ss.is_valid_pose(data.pose)):
         for i, marker_id in enumerate(ids.flatten()):
-            if marker_id not in [0,1,2]:
+            if marker_id not in [1,target_id]:
                 continue
 
             # aruco coordinates
@@ -106,27 +110,23 @@ while True:
             rotation_dict[marker_id].append([time, updated_rotation.copy()])
 
             cv2.aruco.drawDetectedMarkers(color_frames, [corners[i]], np.array([marker_id]), (0,255,0))
-        
-        # averaging different aruco markers for position/rotation of antenna + averaging over interval
-        average_pos = np.array([average_time(position_dict[1], time, 5000000), average_time(position_dict[0], time, 5000000)])
-        average_rot = np.array([average_time(rotation_dict[1], time, 5000000), average_time(rotation_dict[0], time, 5000000)])
-        antenna_pos = average_pos.mean(axis=0)
-        antenna_rot = average_rot.mean(axis=0)
-        
-        # averaging for end point of wave:
-        end_pos = average_time(position_dict[2], time, 5000000)
-        end_rot = average_time(rotation_dict[2], time, 5000000)
 
-        antenna_position = format_vector(antenna_pos if antenna_pos is not None else [None]*3)
-        antenna_rotation = format_vector(antenna_rot if antenna_rot is not None else [None]*4)
-        end_position = format_vector(end_pos if end_pos is not None else [None]*3)
-        end_rotation = format_vector(end_rot if end_rot is not None else [None]*4)
+        average_start = average_time(position_dict[1], time, 5000000)
+        average_rotation = average_time(rotation_dict[1], time, 5000000)
+        average_end = average_time(position_dict[target_id], time, 5000000)
 
-        d = f"{antenna_position}, {antenna_rotation}, {end_position}, {end_rotation}"
+        print(average_start, average_rotation, average_end)
+
+        start_position = format_vector(average_start if average_start is not None else [None, None, None])
+        rotation = format_vector(average_rotation if average_rotation is not None else [None, None, None, None])
+        end_position = format_vector(average_end if average_end is not None else [None, None, None])
+        
+        #only need the z rotation of the wave for now, assume wave is going to stay on a single plane
+        d = f"{start_position}, {rotation[2]}, {end_position}, {target_id}"
 
         conn.sendall(d.encode('utf-8'))
 
-    cv2.imshow("aruco", cv2.rotate(color_frames, cv2.ROTATE_90_COUNTERCLOCKWISE))
+    cv2.imshow("wave aruco", cv2.rotate(color_frames, cv2.ROTATE_90_COUNTERCLOCKWISE))
 
     cv2.waitKey(1)
 

@@ -8,6 +8,7 @@ import hl2ss_3dcv
 import numpy as np
 import socket
 import hl2ss_rus
+import re
 
 # settings --------------------------------------------------------------------
 host = "10.29.211.183"
@@ -19,7 +20,7 @@ mode = hl2ss.StreamMode.MODE_1
 profile = hl2ss.VideoProfile.H265_MAIN
 bitrate = None
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 unity_host, unity_port = "0.0.0.0", 1984
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -32,7 +33,7 @@ print(f"Connection from {addr}")
 
 #------------------------------------------------------------------------------
 position_dict = {1:[], 2:[]}
-rotation_dict = {1:[], 2:[]}
+rotation_dict = {1:[], 2:[], "z":[]}
 
 def average_time(time_position, current_time, time_interval):
     time_position[:] = [(time, position) for (time, position) in time_position if (current_time - time <= time_interval)]
@@ -105,21 +106,19 @@ while True:
             updated_rotation[2:3] = - updated_rotation[2:3]
 
             position_dict[marker_id].append([time, updated_position.copy()])
-            rotation_dict[marker_id].append([time, updated_rotation.copy()])
+            rotation_dict[marker_id].append([time, updated_rotation[2]])
 
-            cv2.aruco.drawDetectedMarkers(color_frames, [corners[i]], np.array([marker_id]), (0,255,0))
+        cv2.aruco.drawDetectedMarkers(color_frames, [corners[i]], np.array([marker_id]), (0,255,0))
 
         average_start = average_time(position_dict[1], time, 5000000)
         average_rotation = average_time(rotation_dict[1], time, 5000000)
         average_end = average_time(position_dict[2], time, 5000000)
-        
-        print(average_start, average_rotation, average_end)
-        
-        start_position = format_vector(average_start if average_start is not None else [None, None, None])
-        rotation = format_vector(average_rotation if average_rotation is not None else [None, None, None, None])
-        end_position = format_vector(average_end if average_end is not None else [None, None, None])
 
-        d = f"{start_position}, {rotation}, {end_position}"
+        start_position = format_vector(average_start if average_start is not None else [None, None, None])
+        end_position = format_vector(average_end if average_end is not None else [None, None, None])
+    
+        d = f"{start_position}, {average_rotation}, {end_position}"
+        print(d)
 
         conn.sendall(d.encode('utf-8'))
 
