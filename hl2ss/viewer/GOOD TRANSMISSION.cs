@@ -9,7 +9,7 @@ public class TransmittedRope : MonoBehaviour
     [SerializeField] private SineRope rope;
 
     [Header("Wave Settings")]
-    public float ropeLength = 2f;
+    public float ropeLength = 3f;
     public float sineAmplitude = 0.25f;
     public float sineFrequency = 20f;
 
@@ -47,7 +47,9 @@ public class TransmittedRope : MonoBehaviour
         if (objectRenderer != null && objectRenderer.material.HasProperty("_Color"))
         {
             Color currentColor = objectRenderer.material.color;
+            
             Color newColor = new Color(currentColor.r, currentColor.g, currentColor.b, 1 - client.reflected - client.absorbed);
+            if (client.reflected == 1) { objectRenderer.enabled = false;  }
 
             objectRenderer.material.color = newColor;
         }
@@ -61,7 +63,6 @@ public class TransmittedRope : MonoBehaviour
 
     private void Update()
     {
-        UpdateLength(rope.ropeLength);
         angle = - client.angle;
         transform.position = rope.endPoint;
     }
@@ -201,14 +202,6 @@ public class TransmittedRope : MonoBehaviour
         sineAmplitude = amplitude;
         samplesPerMeter = samples;
 
-        foreach (Transform child in transform)
-            Destroy(child.gameObject);
-        Start();
-    }
-
-    public void UpdateLength(float length)
-    {
-        ropeLength = length;
         foreach (Transform child in transform)
             Destroy(child.gameObject);
         Start();
