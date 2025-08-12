@@ -76,7 +76,10 @@ while True:
 
     if (ids is not None and hl2ss.is_valid_pose(data.pose)):
         for i, marker_id in enumerate(ids.flatten()):
-            if marker_id not in [0,1,2]:
+            if marker_id in [0,3]:
+                material = marker_id
+                print(material)
+            if marker_id not in [1,2]:
                 continue
 
             # aruco coordinates
@@ -105,25 +108,20 @@ while True:
             updated_rotation[2:3] = - updated_rotation[2:3]
 
             position_dict[marker_id].append([time, updated_position.copy()])
-
-
+            
         cv2.aruco.drawDetectedMarkers(color_frames, [corners[i]], np.array([marker_id]), (0,255,0))
 
-        average_start = average_time(position_dict[1], time, 5000000)
-        material_start = average_time(position_dict[2], time, 5000000)
-        material_end = average_time(position_dict[0], time, 5000000)
+        start = average_time(position_dict[1], time, 5000000)
+        end = average_time(position_dict[2], time, 5000000)
 
-        start_position = format_vector(average_start if average_start is not None else [None, None, None])
-        end_start = format_vector(material_start if material_start is not None else [None, None, None])
-        end_end = format_vector(material_end if material_end is not None else [None, None, None])
-
-        d = f"{start_position}, {end_start}, {end_end}"
+        start_position = format_vector(start if start is not None else [None, None, None])
+        end_position = format_vector(end if end is not None else [None, None, None])
+        
+        d = f"{start_position}, {end_position}, {material}"       
         print(d)
-
         conn.sendall(d.encode('utf-8'))
-
+        
     cv2.imshow("wave aruco", cv2.rotate(color_frames, cv2.ROTATE_90_COUNTERCLOCKWISE))
-
     cv2.waitKey(1)
 
 #------------------------------------------------------------------------------
