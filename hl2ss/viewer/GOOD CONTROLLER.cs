@@ -5,6 +5,9 @@ using TMPro;
 
 public class SineWaveController : MonoBehaviour
 {
+    [Header("Connect to client")]
+    [SerializeField] private client client;
+
     public Slider sliderFrequency;
     public Slider sliderAmplitude;
     public Slider sliderResolution;
@@ -17,11 +20,11 @@ public class SineWaveController : MonoBehaviour
 
     void Start()
     {
+        UpdateRope();
+
         sliderFrequency.OnValueUpdated.AddListener(data => UpdateRope());
         sliderAmplitude.OnValueUpdated.AddListener(data => UpdateRope());
         sliderResolution.OnValueUpdated.AddListener(data => UpdateRope());
-
-        UpdateRope();
     }
 
     public void UpdateRope()
@@ -36,7 +39,7 @@ public class SineWaveController : MonoBehaviour
         samplesLabel.text = $"Res: {res:F1}";
 
         rope.UpdateWaveParams(freq, amp, res);
-        reflection.UpdateWaveParams(freq, amp - 0.01f, res);
-        transmission.UpdateWaveParams(freq, amp - 0.075f, res);
+        reflection.UpdateWaveParams(freq, amp, res);
+        transmission.UpdateWaveParams(freq, amp * (1 - client.reflected - client.absorbed), res);
     }
 }

@@ -24,7 +24,6 @@ public class TransmittedRope : MonoBehaviour
 
     [Header("Directional Control")]
     public Vector3 startPoint = Vector3.zero;
-    [Tooltip("Angle in degrees from +X axis, in the XY plane.")]
     public float angle = 0f;
 
     private Vector3 waveDirection;
@@ -43,6 +42,16 @@ public class TransmittedRope : MonoBehaviour
 
     void Start()
     {
+        Renderer objectRenderer = GetComponent<Renderer>();
+
+        if (objectRenderer != null && objectRenderer.material.HasProperty("_Color"))
+        {
+            Color currentColor = objectRenderer.material.color;
+            Color newColor = new Color(currentColor.r, currentColor.g, currentColor.b, 1 - client.reflected - client.absorbed);
+
+            objectRenderer.material.color = newColor;
+        }
+
         ComputeDirections();
         pathResolution = Mathf.Max(2, Mathf.CeilToInt(ropeLength * samplesPerMeter));
 

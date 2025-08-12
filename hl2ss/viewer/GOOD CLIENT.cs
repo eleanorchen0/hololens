@@ -13,19 +13,24 @@ public class client : MonoBehaviour
     private Thread thread;
     private bool running;
 
+    private string ip = "10.29.224.211";
+    private int port = 1984;
+
+    [Header("Connect to waves")]
     public GameObject EndPoint;
     public SineRope rope;
     public ReflectedRope reflection;
     public TransmittedRope transmission;
+    public float material;
 
-    private string ip = "10.29.224.211";
-    private int port = 1984;
-
-    Vector3 startPoint = new Vector3(0, 1.5f, 2);
-    //float rotation = 0;
+    [Header("Directional Control")]
+    public Vector3 startPoint = new Vector3(0, 1.5f, 2);
+    public Vector3 endPoint = new Vector3(1.5f, 1.5f, 2);
     public float angle = 0;
-    Vector3 endPoint = new Vector3(-0.5f, 1.5f, 2);
-    public float width;
+
+    [Header("Reflection")]
+    public float reflected = 1;
+    public float absorbed;
 
     void Start()
     {
@@ -56,7 +61,13 @@ public class client : MonoBehaviour
 
         if (!string.IsNullOrEmpty(dataReceived))
         {
-            (startPoint, endPoint) = ParseData(dataReceived);
+            (startPoint, endPoint, material) = ParseData(dataReceived);
+            if (material == 0)
+            {
+                reflected = 1.00f;
+            }
+            else if (material == 3) { reflected = 0.10f; absorbed = 0.50f; }
+            else { reflected = 0f; absorbed = 0f; }
         }
     }
 
@@ -65,7 +76,7 @@ public class client : MonoBehaviour
         thread?.Abort();
     }
 
-    public static (Vector3, Vector3) ParseData(string data)
+    public static (Vector3, Vector3, float) ParseData(string data)
     {
         string[] stringArray = data.Split(',');
 
@@ -80,8 +91,10 @@ public class client : MonoBehaviour
 
         Vector3 pos1 = new Vector3(values[0], values[1] + 1.6f, values[2]);
         Vector3 pos2 = new Vector3(values[3], values[4] + 1.6f, values[5]);
+        float mat = values[6];
 
-        return (pos1, pos2);
+
+        return (pos1, pos2, mat);
     }
 
     public float CalculateAngle(Vector3 pos1, Vector3 pos2)
@@ -103,5 +116,6 @@ public class client : MonoBehaviour
             rope.UpdateEnd(endPoint);
         }
         angle = Mathf.Abs(CalculateAngle(endPoint, startPoint));
+
     }
 }

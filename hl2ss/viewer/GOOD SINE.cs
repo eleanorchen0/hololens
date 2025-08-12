@@ -54,7 +54,9 @@ public class SineRope : MonoBehaviour
     {
         waveDirection = (endPoint - startPoint).normalized;
         ropeLength = Vector3.Distance(startPoint, endPoint);
-        sineDirection = Vector3.Cross(waveDirection, Vector3.forward).normalized;
+        Vector3 direction = Vector3.Cross(waveDirection, Vector3.left).normalized;
+        sineDirection = new Vector3(direction.x + 0.125f, direction.y, direction.z + 0.125f);
+
         material.transform.position = endPoint;
         material.transform.rotation = Quaternion.Euler(0, CalculateAngle(startPoint, endPoint), 0);
     }

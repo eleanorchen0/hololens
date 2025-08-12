@@ -12,8 +12,8 @@ public class ReflectedRope : MonoBehaviour
 
     [Header("Wave Settings")]
     public float ropeLength = 2f;
-    public float sineAmplitude = 0.25f;
-    public float sineFrequency = 20f;
+    public float sineAmplitude = 0.05f;
+    public float sineFrequency = 35f;
 
     [Header("Mesh Resolution")]
     public float samplesPerMeter = 100f;
@@ -26,7 +26,6 @@ public class ReflectedRope : MonoBehaviour
 
     [Header("Directional Control")]
     public Vector3 startPoint = Vector3.zero;
-    [Tooltip("Angle in degrees from +X axis, in the XY plane.")]
     public float angle = 0f;
 
     private Vector3 waveDirection;
@@ -45,6 +44,16 @@ public class ReflectedRope : MonoBehaviour
 
     void Start()
     {
+        Renderer objectRenderer = GetComponent<Renderer>();
+
+        if (objectRenderer != null && objectRenderer.material.HasProperty("_Color"))
+        {
+            Color currentColor = objectRenderer.material.color;
+            Color newColor = new Color(currentColor.r, currentColor.g, currentColor.b, client.reflected);
+
+            objectRenderer.material.color = newColor;
+        }
+
         ComputeDirections();
         pathResolution = Mathf.Max(2, Mathf.CeilToInt(ropeLength * samplesPerMeter));
 
@@ -56,7 +65,7 @@ public class ReflectedRope : MonoBehaviour
     {
         UpdateLength(rope.ropeLength);
         angle = client.angle;
-        transform.position = rope.endPoint;
+        transform.position = new Vector3( rope.endPoint.x, rope.endPoint.y - 0.1f, rope.endPoint.z );
     }
 
     private void ComputeDirections()
