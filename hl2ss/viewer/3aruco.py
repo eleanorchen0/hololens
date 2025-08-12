@@ -30,7 +30,7 @@ conn, addr = server_socket.accept()
 print(f"Connection from {addr}")
 
 #------------------------------------------------------------------------------
-position_dict = {0:[], 1:[], 2:[]}
+position_dict = {1:[], 2:[]}
 def average_time(time_position, current_time, time_interval):
     time_position[:] = [(time, position) for (time, position) in time_position if (current_time - time <= time_interval)]
 
@@ -76,7 +76,12 @@ while True:
 
     if (ids is not None and hl2ss.is_valid_pose(data.pose)):
         for i, marker_id in enumerate(ids.flatten()):
-            if marker_id in [0,3]:
+            # materials : 
+            # 0 : metal, 100% reflection
+            # 3 : just for test, 50% absorbed, 10% reflected
+            # 4 : just for test, 10% absorbed, 70% reflected
+            # cannot place multiple in frame at a time -- python will crash, switch markers without placing two in frame at one time
+            if marker_id in [0,3,4]:
                 material = marker_id
                 print(material)
             if marker_id not in [1,2]:
