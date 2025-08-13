@@ -31,6 +31,7 @@ print(f"Connection from {addr}")
 
 #------------------------------------------------------------------------------
 position_dict = {1:[], 2:[]}
+rotation_dict = {1:[], 2:[]}
 def average_time(time_position, current_time, time_interval):
     time_position[:] = [(time, position) for (time, position) in time_position if (current_time - time <= time_interval)]
 
@@ -113,16 +114,20 @@ while True:
             updated_rotation[2:3] = - updated_rotation[2:3]
 
             position_dict[marker_id].append([time, updated_position.copy()])
+            rotation_dict[marker_id].append([time, updated_rotation.copy()])
             
         cv2.aruco.drawDetectedMarkers(color_frames, [corners[i]], np.array([marker_id]), (0,255,0))
 
         start = average_time(position_dict[1], time, 5000000)
         end = average_time(position_dict[2], time, 5000000)
+        rotation_avg = average_time(rotation_dict[1], time, 5000000)
+
 
         start_position = format_vector(start if start is not None else [None, None, None])
         end_position = format_vector(end if end is not None else [None, None, None])
+        rotation = format_vector(rotation_avg if rotation_avg is not None else [None, None, None])
         
-        d = f"{start_position}, {end_position}, {material}"       
+        d = f"{start_position}, {end_position}, {material}, {rotation}"       
         print(d)
         conn.sendall(d.encode('utf-8'))
         
