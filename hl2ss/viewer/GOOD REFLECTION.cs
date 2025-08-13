@@ -11,7 +11,7 @@ public class ReflectedRope : MonoBehaviour
 
 
     [Header("Wave Settings")]
-    public float ropeLength = 3f;
+    public float ropeLength = 2f;
     public float sineAmplitude = 0.05f;
     public float sineFrequency = 35f;
 
@@ -53,6 +53,7 @@ public class ReflectedRope : MonoBehaviour
 
     private void Update()
     {
+        UpdateLength(3);
         angle = client.angle;
         transform.position = new Vector3( rope.endPoint.x, rope.endPoint.y - 0.1f, rope.endPoint.z );
     }
@@ -196,4 +197,11 @@ public class ReflectedRope : MonoBehaviour
         Start();
     }
 
+    public void UpdateLength(float length)
+    {
+        ropeLength = length;
+        foreach (Transform child in transform)
+            Destroy(child.gameObject);
+        Start();
+    }
 }

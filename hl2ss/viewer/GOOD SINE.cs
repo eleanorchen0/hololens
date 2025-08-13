@@ -17,12 +17,15 @@ public class SineRope : MonoBehaviour
     public Vector3 startPoint = new Vector3(1, 1, 4);
     public Vector3 endPoint = new Vector3(5, -6, 4);
     public Vector3 sineDirection = Vector3.up;
+    public GameObject material;
 
-    private int pathResolution;
+    [Header("Directions")]
     public Vector3 waveDirection;
     public float ropeLength;
     public float rotation;
-    public GameObject material;
+
+
+    private int pathResolution;
 
     void Start()
     {

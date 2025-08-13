@@ -1,17 +1,19 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Data;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
-public class TransmittedRope : MonoBehaviour
+public class ReflectedRope : MonoBehaviour
 {
     [Header("Link to sine")]
     [SerializeField] private client client;
     [SerializeField] private SineRope rope;
 
+
     [Header("Wave Settings")]
-    public float ropeLength = 3f;
-    public float sineAmplitude = 0.25f;
-    public float sineFrequency = 20f;
+    public float ropeLength = 2f;
+    public float sineAmplitude = 0.05f;
+    public float sineFrequency = 35f;
 
     [Header("Mesh Resolution")]
     public float samplesPerMeter = 100f;
@@ -42,18 +44,6 @@ public class TransmittedRope : MonoBehaviour
 
     void Start()
     {
-        Renderer objectRenderer = GetComponent<Renderer>();
-
-        if (objectRenderer != null && objectRenderer.material.HasProperty("_Color"))
-        {
-            Color currentColor = objectRenderer.material.color;
-            
-            Color newColor = new Color(currentColor.r, currentColor.g, currentColor.b, 1 - client.reflected - client.absorbed);
-            if (client.reflected == 1) { objectRenderer.enabled = false;  }
-
-            objectRenderer.material.color = newColor;
-        }
-
         ComputeDirections();
         pathResolution = Mathf.Max(2, Mathf.CeilToInt(ropeLength * samplesPerMeter));
 
@@ -63,15 +53,16 @@ public class TransmittedRope : MonoBehaviour
 
     private void Update()
     {
-        angle = - client.angle;
-        transform.position = rope.endPoint;
+        UpdateLength(3);
+        angle = client.angle;
+        transform.position = new Vector3( rope.endPoint.x, rope.endPoint.y - 0.1f, rope.endPoint.z );
     }
 
     private void ComputeDirections()
     {
         float rad = angle * Mathf.Deg2Rad;
         waveDirection = rope.waveDirection;
-        sineDirection = rope.sineDirection;
+        sineDirection = - rope.sineDirection;
     }
 
     void GenerateSineRope()
@@ -90,7 +81,6 @@ public class TransmittedRope : MonoBehaviour
 
         GetComponent<MeshFilter>().mesh = mesh;
     }
-
 
     void GenerateClothBetweenCenterAndSine()
     {
@@ -202,6 +192,14 @@ public class TransmittedRope : MonoBehaviour
         sineAmplitude = amplitude;
         samplesPerMeter = samples;
 
+        foreach (Transform child in transform)
+            Destroy(child.gameObject);
+        Start();
+    }
+
+    public void UpdateLength(float length)
+    {
+        ropeLength = length;
         foreach (Transform child in transform)
             Destroy(child.gameObject);
         Start();

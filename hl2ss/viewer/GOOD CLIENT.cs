@@ -67,7 +67,6 @@ public class client : MonoBehaviour
                 reflected = 1.00f;
             }
             else if (material == 3) { reflected = 0.10f; absorbed = 0.50f; }
-            else { reflected = 0f; absorbed = 0f; }
         }
     }
 
