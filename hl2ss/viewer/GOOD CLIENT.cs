@@ -62,11 +62,13 @@ public class client : MonoBehaviour
         if (!string.IsNullOrEmpty(dataReceived))
         {
             (startPoint, endPoint, material) = ParseData(dataReceived);
-            if (material == 0)
+            if (material == 3)
             {
                 reflected = 1.00f;
             }
-            else if (material == 3) { reflected = 0.10f; absorbed = 0.50f; }
+            else if (material == 4) { reflected = 0.10f; absorbed = 0.30f; }
+            else if (material == 5) { reflected = 0.10f; absorbed = 0.70f; }
+            else if (material == 6) { reflected = 0f; absorbed = 0.3f; }
         }
     }
 

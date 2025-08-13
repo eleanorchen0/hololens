@@ -1,19 +1,17 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Data;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
-public class ReflectedRope : MonoBehaviour
+public class TransmittedRope : MonoBehaviour
 {
     [Header("Link to sine")]
     [SerializeField] private client client;
     [SerializeField] private SineRope rope;
 
-
     [Header("Wave Settings")]
     public float ropeLength = 2f;
-    public float sineAmplitude = 0.05f;
-    public float sineFrequency = 35f;
+    public float sineAmplitude = 0.25f;
+    public float sineFrequency = 20f;
 
     [Header("Mesh Resolution")]
     public float samplesPerMeter = 100f;
@@ -44,6 +42,18 @@ public class ReflectedRope : MonoBehaviour
 
     void Start()
     {
+        Renderer objectRenderer = GetComponent<Renderer>();
+
+        if (objectRenderer != null && objectRenderer.material.HasProperty("_Color"))
+        {
+            Color currentColor = objectRenderer.material.color;
+            Color newColor = new Color(currentColor.r, currentColor.g, currentColor.b, 1 - client.reflected - client.absorbed);
+            if (client.reflected == 1) { objectRenderer.enabled = false; }
+            else { objectRenderer.enabled = true; }
+
+            objectRenderer.material.color = newColor;
+        }
+
         ComputeDirections();
         pathResolution = Mathf.Max(2, Mathf.CeilToInt(ropeLength * samplesPerMeter));
 
@@ -54,15 +64,15 @@ public class ReflectedRope : MonoBehaviour
     private void Update()
     {
         UpdateLength(3);
-        angle = client.angle;
-        transform.position = new Vector3( rope.endPoint.x, rope.endPoint.y - 0.1f, rope.endPoint.z );
+        angle = -client.angle;
+        transform.position = rope.endPoint;
     }
 
     private void ComputeDirections()
     {
         float rad = angle * Mathf.Deg2Rad;
         waveDirection = rope.waveDirection;
-        sineDirection = - rope.sineDirection;
+        sineDirection = rope.sineDirection;
     }
 
     void GenerateSineRope()
@@ -81,6 +91,7 @@ public class ReflectedRope : MonoBehaviour
 
         GetComponent<MeshFilter>().mesh = mesh;
     }
+
 
     void GenerateClothBetweenCenterAndSine()
     {

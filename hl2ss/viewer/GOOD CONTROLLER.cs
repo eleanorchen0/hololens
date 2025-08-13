@@ -37,9 +37,22 @@ public class SineWaveController : MonoBehaviour
         freqLabel.text = $"Freq: {freq:F2}";
         ampLabel.text = $"Amp: {amp:F2}";
         samplesLabel.text = $"Res: {res:F1}";
-
+        if (client.reflected == 1 || client.reflected == 0) 
+        {
+            reflection.UpdateWaveParams(freq, amp * client.reflected, res);
+            transmission.UpdateWaveParams(freq, amp * (1 - client.reflected - client.absorbed), res);
+        }
+        else
+        {
+            reflection.UpdateWaveParams(freq, amp * client.reflected * 1.4f, res);
+            transmission.UpdateWaveParams(freq, amp * (1 - client.reflected - client.absorbed) * 1.4f, res);
+        }
         rope.UpdateWaveParams(freq, amp, res);
-        reflection.UpdateWaveParams(freq, amp, res);
-        transmission.UpdateWaveParams(freq, amp * (1 - client.reflected - client.absorbed), res);
+        
+    }
+
+    private void Update()
+    {
+        UpdateRope();
     }
 }

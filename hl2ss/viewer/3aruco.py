@@ -47,7 +47,7 @@ def form(v):
     return v if v is not None else 'NaN'
 
 # aruco -----------------------------------------------------------------------
-marker_length  = 0.07
+marker_length  = 0.06
 
 aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 aruco_parameters = cv2.aruco.DetectorParameters()
@@ -81,7 +81,7 @@ while True:
             # 3 : just for test, 50% absorbed, 10% reflected
             # 4 : just for test, 10% absorbed, 70% reflected
             # cannot place multiple in frame at a time -- python will crash, switch markers without placing two in frame at one time
-            if marker_id in [0,3,4]:
+            if marker_id in [0,3,4,5,6]:
                 material = marker_id
                 print(material)
             if marker_id not in [1,2]:

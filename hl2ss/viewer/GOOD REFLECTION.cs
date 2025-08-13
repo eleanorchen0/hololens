@@ -56,13 +56,25 @@ public class ReflectedRope : MonoBehaviour
         UpdateLength(3);
         angle = client.angle;
         transform.position = new Vector3( rope.endPoint.x, rope.endPoint.y - 0.1f, rope.endPoint.z );
+
+        Renderer objectRenderer = GetComponent<Renderer>();
+
+        if (objectRenderer != null && objectRenderer.material.HasProperty("_Color"))
+        {
+            Color currentColor = objectRenderer.material.color;
+            Color newColor = new Color(currentColor.r, currentColor.g, currentColor.b, client.reflected);
+            if (client.reflected == 0) { objectRenderer.enabled = false; }
+            else { objectRenderer.enabled = true; }
+
+            objectRenderer.material.color = newColor;
+        }
     }
 
     private void ComputeDirections()
     {
         float rad = angle * Mathf.Deg2Rad;
         waveDirection = rope.waveDirection;
-        sineDirection = - rope.sineDirection;
+        sineDirection = -rope.sineDirection;
     }
 
     void GenerateSineRope()

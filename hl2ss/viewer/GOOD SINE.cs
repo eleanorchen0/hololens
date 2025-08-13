@@ -3,7 +3,7 @@ using System.Collections.Generic;
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class SineRope : MonoBehaviour
 {
-    [Header("Wave Settings")] public float sineAmplitude = 0.5f; public float sineFrequency = 1f;
+    [Header("Wave Settings")] public float sineAmplitude = 0.05f; public float sineFrequency = 35f;
     [Header("Mesh Resolution")]
     public float samplesPerMeter = 10f;
     public int radialSegments = 8;
