@@ -16,23 +16,19 @@ mode = hl2ss.StreamMode.MODE_1
 profile = hl2ss.VideoProfile.H265_MAIN
 bitrate = None
 
-# 0 = metal
-material = 0
-width = 0.5
 # ------------------------------------------------------------------------------
-unity_host, unity_port = "0.0.0.0", 1984
-
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind((unity_host, unity_port))
-server_socket.listen(1)
-
-print(f"Python Server listening on {unity_host}:{unity_port}")
-conn, addr = server_socket.accept()
-print(f"Connection from {addr}")
+# unity_host, unity_port = "0.0.0.0", 1984
+# 
+# server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# server_socket.bind((unity_host, unity_port))
+# server_socket.listen(1)
+# 
+# print(f"Python Server listening on {unity_host}:{unity_port}")
+# conn, addr = server_socket.accept()
+# print(f"Connection from {addr}")
 
 #------------------------------------------------------------------------------
-position_dict = {1:[], 2:[]}
-rotation_dict = {1:[], 2:[]}
+position_dict = {1:[], 2:[], 3:[]}
 def average_time(time_position, current_time, time_interval):
     time_position[:] = [(time, position) for (time, position) in time_position if (current_time - time <= time_interval)]
 
@@ -44,9 +40,6 @@ def average_time(time_position, current_time, time_interval):
 
 def format_vector(v):
     return ','.join(str(float(x)) if x is not None else 'NaN' for x in v)
-
-def form(v):
-    return v if v is not None else 'NaN'
 
 # aruco -----------------------------------------------------------------------
 marker_length  = 0.06
@@ -78,15 +71,7 @@ while True:
 
     if (ids is not None and hl2ss.is_valid_pose(data.pose)):
         for i, marker_id in enumerate(ids.flatten()):
-            # materials : 
-            # 0 : metal, 100% reflection
-            # 3 : just for test, 50% absorbed, 10% reflected
-            # 4 : just for test, 10% absorbed, 70% reflected
-            # cannot place multiple in frame at a time -- python will crash, switch markers without placing two in frame at one time
-            if marker_id in [0,3,4,5,6]:
-                material = marker_id
-                print(material)
-            if marker_id not in [1,2]:
+            if marker_id not in [1,2,3]:
                 continue
 
             # aruco coordinates
@@ -103,41 +88,32 @@ while True:
 
             # position
             updated_position = aruco_reference_world[4, :]
-
-            #rotation
-            rotation_vec, _ = cv2.Rodrigues(aruco_to_world[:3, :3])
-            angle = np.linalg.norm(rotation_vec)
-            axis = rotation_vec / angle
-            updated_rotation = np.vstack((axis * np.sin(angle / 2), np.array([[np.cos(angle / 2)]])))[:, 0]
-
+            
             # convert for unity
             updated_position[2] = - updated_position[2]
-            updated_rotation[2:3] = - updated_rotation[2:3]
 
             position_dict[marker_id].append([time, updated_position.copy()])
-            rotation_dict[marker_id].append([time, updated_rotation.copy()])
-            
+
         cv2.aruco.drawDetectedMarkers(color_frames, [corners[i]], np.array([marker_id]), (0,255,0))
 
-        start = average_time(position_dict[1], time, 25000000)
-        end = average_time(position_dict[2], time, 25000000)
-        rotation_avg = average_time(rotation_dict[1], time, 25000000)
+        dipole = average_time(position_dict[1], time, 25000000)
+        patch = average_time(position_dict[2], time, 25000000)
+        horn = average_time(position_dict[3], time, 25000000)
 
+        dipole_pos = format_vector(dipole if dipole is not None else [None, None, None])
+        patch_pos = format_vector(patch if patch is not None else [None, None, None])
+        horn_pos = format_vector(horn if horn is not None else [None, None, None])
 
-        start_position = format_vector(start if start is not None else [None, None, None])
-        end_position = format_vector(end if end is not None else [None, None, None])
-        rotation = format_vector(rotation_avg if rotation_avg is not None else [None, None, None,None])
-        
-        d = f"{start_position}, {end_position}, {material}, {rotation}, {width}"       
+        d = f"{dipole_pos}, {patch_pos}, {horn_pos}"
         print(d)
-        conn.sendall(d.encode('utf-8'))
-        
+        # conn.sendall(d.encode('utf-8'))
+
     cv2.imshow("wave aruco", cv2.rotate(color_frames, cv2.ROTATE_90_COUNTERCLOCKWISE))
     cv2.waitKey(1)
 
 #------------------------------------------------------------------------------
-server_socket.close()
-conn.close()
+# server_socket.close()
+# conn.close()
 client.close()
 cv2.destroyAllWindows()
 #------------------------------------------------------------------------------
