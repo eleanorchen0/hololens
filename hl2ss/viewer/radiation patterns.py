@@ -28,7 +28,11 @@ bitrate = None
 # print(f"Connection from {addr}")
 
 #------------------------------------------------------------------------------
+# 1 : dipole
+# 2 : patch
+# 3 : horn 
 position_dict = {1:[], 2:[], 3:[]}
+rotation_dict = {1:[], 2:[], 3:[]}
 def average_time(time_position, current_time, time_interval):
     time_position[:] = [(time, position) for (time, position) in time_position if (current_time - time <= time_interval)]
 
@@ -88,23 +92,33 @@ while True:
 
             # position
             updated_position = aruco_reference_world[4, :]
-            
+
+            #rotation
+            rotation_vec, _ = cv2.Rodrigues(aruco_to_world[:3, :3])
+            angle = np.linalg.norm(rotation_vec)
+            axis = rotation_vec / angle
+            updated_rotation = np.vstack((axis * np.sin(angle / 2), np.array([[np.cos(angle / 2)]])))[:, 0]
+
             # convert for unity
             updated_position[2] = - updated_position[2]
+            updated_rotation[2:3] = - updated_rotation[2:3]
 
             position_dict[marker_id].append([time, updated_position.copy()])
+            rotation_dict[marker_id].append([time, updated_rotation.copy()])
 
         cv2.aruco.drawDetectedMarkers(color_frames, [corners[i]], np.array([marker_id]), (0,255,0))
 
         dipole = average_time(position_dict[1], time, 25000000)
         patch = average_time(position_dict[2], time, 25000000)
         horn = average_time(position_dict[3], time, 25000000)
+        rot = average_time(rotation_dict[3], time, 25000000)
 
         dipole_pos = format_vector(dipole if dipole is not None else [None, None, None])
         patch_pos = format_vector(patch if patch is not None else [None, None, None])
         horn_pos = format_vector(horn if horn is not None else [None, None, None])
+        horn_rot = format_vector(rot if rot is not None else [None, None, None, None])
 
-        d = f"{dipole_pos}, {patch_pos}, {horn_pos}"
+        d = f"{dipole_pos}, {patch_pos}, {horn_pos}, {horn_rot}"
         print(d)
         # conn.sendall(d.encode('utf-8'))
 
