@@ -1,9 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.UIElements;
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class HornAntenna : MonoBehaviour
 {
+    [Header("controller")]
+    public controller controller;
+
     [Header("resolution")]
     public int phiSegments = 120;
     public int thetaSegments = 60;
@@ -29,12 +33,17 @@ public class HornAntenna : MonoBehaviour
     public float gamma = 0.5f;
 
     private Mesh mesh;
+    private float div;
+
+    private bool doubled;
+
 
     void Awake()
     {
         mesh = new Mesh { name = "HornPattern" };
         GetComponent<MeshFilter>().mesh = mesh;
         GetComponent<MeshRenderer>().materials = new Material[] { surface, gridMaterial };
+
         BuildMesh();
     }
 
@@ -42,12 +51,24 @@ public class HornAntenna : MonoBehaviour
     {
         if (mesh != null)
             BuildMesh();
+        
 
         GetComponent<MeshRenderer>().materials = new Material[] { surface, gridMaterial };
+
     }
 
     void BuildMesh()
     {
+        doubled = controller.doubled;
+        if (doubled)
+        {
+            div = 1f;
+        }
+        else
+        {
+            div = 2f;
+        }
+
         mesh.Clear();
 
         int vCount = (phiSegments + 1) * (thetaSegments + 1);
@@ -65,7 +86,8 @@ public class HornAntenna : MonoBehaviour
         // ************CALCS*************
         for (int ti = 0; ti <= thetaSegments; ti++)
         {
-            float theta = Mathf.PI * ti / 2f / thetaSegments;
+
+            float theta = Mathf.PI * ti / div / thetaSegments;
             float sinT = Mathf.Sin(theta);
             float cosT = Mathf.Cos(theta);
 
@@ -145,7 +167,10 @@ public class HornAntenna : MonoBehaviour
         minGain = dbmin;
         maxGain = dbmax;
         gamma = gamma1;
+        doubled = controller.doubled;
 
         BuildMesh();
     }
+
+    
 }
